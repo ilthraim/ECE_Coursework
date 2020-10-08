@@ -1,0 +1,11 @@
+// Partial estvector file for 3-8 decoder
+// Each line contains one testvector in binary format
+// Underscore characters are spacers that separate fields for readability
+000_00000001
+001_00000010
+010_00000100
+011_00001000
+100_00010000
+101_00100000
+110_01000000
+111_10000000
