@@ -1,0 +1,179 @@
+EESchema Schematic File Version 2
+LIBS:power
+LIBS:device
+LIBS:switches
+LIBS:relays
+LIBS:motors
+LIBS:transistors
+LIBS:conn
+LIBS:linear
+LIBS:regul
+LIBS:74xx
+LIBS:cmos4000
+LIBS:adc-dac
+LIBS:memory
+LIBS:xilinx
+LIBS:microcontrollers
+LIBS:dsp
+LIBS:microchip
+LIBS:analog_switches
+LIBS:motorola
+LIBS:texas
+LIBS:intel
+LIBS:audio
+LIBS:interface
+LIBS:digital-audio
+LIBS:philips
+LIBS:display
+LIBS:cypress
+LIBS:siliconi
+LIBS:opto
+LIBS:atmel
+LIBS:contrib
+LIBS:valves
+LIBS:tft
+LIBS:PIC32MX250F128B-V_SP
+EELAYER 25 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L PIC32MX250F128B-V/SP U2
+U 1 1 5D779BC0
+P 6050 3350
+F 0 "U2" H 4469 4471 50  0000 L BNN
+F 1 "PIC32MX250F128B-V/SP" H 4468 2158 50  0000 L BNN
+F 2 "DIP254P762X508-28" H 6050 3350 50  0001 L BNN
+F 3 "SPDIP-28 Microchip" H 6050 3350 50  0001 L BNN
+F 4 "PIC32MX250F128B-V/SP" H 6050 3350 50  0001 L BNN "Field4"
+F 5 "32 Bit MCU, 128KB Flash, 32KB RAM, 40 MHz, 28 Pin, 3 Comp, CTMU, RTCC, 28 SPDIP" H 6050 3350 50  0001 L BNN "Field5"
+F 6 "Microchip" H 6050 3350 50  0001 L BNN "Field6"
+F 7 "None" H 6050 3350 50  0001 L BNN "Field7"
+F 8 "Unavailable" H 6050 3350 50  0001 L BNN "Field8"
+	1    6050 3350
+	1    0    0    -1  
+$EndComp
+$Comp
+L TFT U1
+U 1 1 5D779C12
+P 5550 5150
+F 0 "U1" H 5550 5200 60  0000 C CNN
+F 1 "TFT" H 5550 5300 60  0000 C CNN
+F 2 "" H 5550 5300 60  0001 C CNN
+F 3 "" H 5550 5300 60  0001 C CNN
+	1    5550 5150
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR1
+U 1 1 5D779D9E
+P 4700 4800
+F 0 "#PWR1" H 4700 4550 50  0001 C CNN
+F 1 "GND" H 4700 4650 50  0000 C CNN
+F 2 "" H 4700 4800 50  0001 C CNN
+F 3 "" H 4700 4800 50  0001 C CNN
+	1    4700 4800
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	4900 4800 4700 4800
+Wire Wire Line
+	4250 2650 3350 2650
+Wire Wire Line
+	3350 2650 3350 4900
+Wire Wire Line
+	3350 4900 4900 4900
+Wire Wire Line
+	6750 2850 7750 2850
+Wire Wire Line
+	7750 2850 7750 6050
+Wire Wire Line
+	7750 6050 4250 6050
+Wire Wire Line
+	4250 6050 4250 5000
+Wire Wire Line
+	4250 5000 4900 5000
+Wire Wire Line
+	6750 3150 7700 3150
+Wire Wire Line
+	7700 3150 7700 6000
+Wire Wire Line
+	7700 6000 4300 6000
+Wire Wire Line
+	4300 6000 4300 5100
+Wire Wire Line
+	4300 5100 4900 5100
+Wire Wire Line
+	4250 3350 3400 3350
+Wire Wire Line
+	3400 3350 3400 5200
+Wire Wire Line
+	3400 5200 4900 5200
+Wire Wire Line
+	4250 3250 3450 3250
+Wire Wire Line
+	3450 3250 3450 5300
+Wire Wire Line
+	3450 5300 4900 5300
+Wire Wire Line
+	4250 3450 3500 3450
+Wire Wire Line
+	3500 3450 3500 5400
+Wire Wire Line
+	3500 5400 4900 5400
+Wire Wire Line
+	6150 4800 6150 5000
+Connection ~ 6150 4900
+Wire Wire Line
+	6150 4900 6300 4900
+Text Notes 6300 4900 0    60   ~ 0
+3Vo
+Wire Wire Line
+	4250 4050 4250 4550
+Wire Wire Line
+	4250 4550 6500 4550
+Wire Wire Line
+	6500 4550 6500 5100
+Wire Wire Line
+	6500 5100 6150 5100
+Wire Wire Line
+	4250 3050 4200 3050
+Wire Wire Line
+	4200 3050 4200 4600
+Wire Wire Line
+	4200 4600 6550 4600
+Wire Wire Line
+	6550 4600 6550 5200
+Wire Wire Line
+	6550 5200 6150 5200
+Wire Wire Line
+	4250 3150 4150 3150
+Wire Wire Line
+	4150 3150 4150 4650
+Wire Wire Line
+	4150 4650 6600 4650
+Wire Wire Line
+	6600 4650 6600 5300
+Wire Wire Line
+	6600 5300 6150 5300
+Wire Wire Line
+	4250 3850 4100 3850
+Wire Wire Line
+	4100 3850 4100 4700
+Wire Wire Line
+	4100 4700 6650 4700
+Wire Wire Line
+	6650 4700 6650 5400
+Wire Wire Line
+	6650 5400 6150 5400
+$EndSCHEMATC

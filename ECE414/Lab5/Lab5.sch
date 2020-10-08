@@ -1,0 +1,541 @@
+EESchema Schematic File Version 2
+LIBS:power
+LIBS:device
+LIBS:switches
+LIBS:relays
+LIBS:motors
+LIBS:transistors
+LIBS:conn
+LIBS:linear
+LIBS:regul
+LIBS:74xx
+LIBS:cmos4000
+LIBS:adc-dac
+LIBS:memory
+LIBS:xilinx
+LIBS:microcontrollers
+LIBS:dsp
+LIBS:microchip
+LIBS:analog_switches
+LIBS:motorola
+LIBS:texas
+LIBS:intel
+LIBS:audio
+LIBS:interface
+LIBS:digital-audio
+LIBS:philips
+LIBS:display
+LIBS:cypress
+LIBS:siliconi
+LIBS:opto
+LIBS:atmel
+LIBS:contrib
+LIBS:valves
+LIBS:PIC32MX250F128B-V_SP
+LIBS:tft
+LIBS:uart
+LIBS:QRD1114-ND
+LIBS:dk_Optoisolators-Transistor-Photovoltaic-Output
+LIBS:dk_Diodes-Rectifiers-Single
+EELAYER 25 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L PIC32MX250F128B-V/SP U5
+U 1 1 5D9C7F2C
+P 6600 2400
+F 0 "U5" H 5019 3521 50  0000 L BNN
+F 1 "PIC32MX250F128B-V/SP" H 5018 1208 50  0000 L BNN
+F 2 "DIP254P762X508-28" H 6600 2400 50  0001 L BNN
+F 3 "SPDIP-28 Microchip" H 6600 2400 50  0001 L BNN
+F 4 "PIC32MX250F128B-V/SP" H 6600 2400 50  0001 L BNN "Field4"
+F 5 "32 Bit MCU, 128KB Flash, 32KB RAM, 40 MHz, 28 Pin, 3 Comp, CTMU, RTCC, 28 SPDIP" H 6600 2400 50  0001 L BNN "Field5"
+F 6 "Microchip" H 6600 2400 50  0001 L BNN "Field6"
+F 7 "None" H 6600 2400 50  0001 L BNN "Field7"
+F 8 "Unavailable" H 6600 2400 50  0001 L BNN "Field8"
+	1    6600 2400
+	1    0    0    -1  
+$EndComp
+$Comp
+L TFT U4
+U 1 1 5D9C8039
+P 5950 4650
+F 0 "U4" H 5950 4700 60  0000 C CNN
+F 1 "TFT" H 5950 4800 60  0000 C CNN
+F 2 "" H 5950 4800 60  0001 C CNN
+F 3 "" H 5950 4800 60  0001 C CNN
+	1    5950 4650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4800 1700 3750 1700
+Wire Wire Line
+	3750 1700 3750 4400
+Wire Wire Line
+	3750 4400 5300 4400
+$Comp
+L GND #PWR4
+U 1 1 5D9C8183
+P 5200 4300
+F 0 "#PWR4" H 5200 4050 50  0001 C CNN
+F 1 "GND" H 5200 4150 50  0000 C CNN
+F 2 "" H 5200 4300 50  0001 C CNN
+F 3 "" H 5200 4300 50  0001 C CNN
+	1    5200 4300
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	5300 4300 5200 4300
+Wire Wire Line
+	6550 4300 6700 4300
+Wire Wire Line
+	6700 4300 6700 4500
+Wire Wire Line
+	6700 4500 6550 4500
+Wire Wire Line
+	6550 4400 6800 4400
+Connection ~ 6700 4400
+Text Notes 6800 4400 0    60   ~ 0
+3Vo
+Wire Wire Line
+	4800 2500 4550 2500
+Wire Wire Line
+	4550 2500 4550 4900
+Wire Wire Line
+	4550 4900 5300 4900
+Wire Wire Line
+	4800 2300 4500 2300
+Wire Wire Line
+	4500 2300 4500 4800
+Wire Wire Line
+	4500 4800 5300 4800
+Wire Wire Line
+	4800 2400 4450 2400
+Wire Wire Line
+	4450 2400 4450 4700
+Wire Wire Line
+	4450 4700 5300 4700
+Wire Wire Line
+	7300 1900 7400 1900
+Wire Wire Line
+	7400 1900 7400 5050
+Wire Wire Line
+	7400 5050 5200 5050
+Wire Wire Line
+	5200 5050 5200 4500
+Wire Wire Line
+	5200 4500 5300 4500
+Wire Wire Line
+	7300 2200 7350 2200
+Wire Wire Line
+	7350 2200 7350 5000
+Wire Wire Line
+	7350 5000 5250 5000
+Wire Wire Line
+	5250 5000 5250 4600
+Wire Wire Line
+	5250 4600 5300 4600
+$Comp
+L UART U3
+U 1 1 5D9C8564
+P 3900 2900
+F 0 "U3" H 3800 3100 60  0000 C CNN
+F 1 "UART" H 3850 2600 60  0000 C CNN
+F 2 "" H 4000 2900 60  0001 C CNN
+F 3 "" H 4000 2900 60  0001 C CNN
+	1    3900 2900
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	4250 2800 4800 2800
+Wire Wire Line
+	4250 3000 4250 3150
+$Comp
+L GND #PWR3
+U 1 1 5D9C88C3
+P 4250 3150
+F 0 "#PWR3" H 4250 2900 50  0001 C CNN
+F 1 "GND" H 4250 3000 50  0000 C CNN
+F 2 "" H 4250 3150 50  0001 C CNN
+F 3 "" H 4250 3150 50  0001 C CNN
+	1    4250 3150
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4800 2100 4400 2100
+Wire Wire Line
+	4400 2100 4400 2900
+Wire Wire Line
+	4400 2900 4250 2900
+$Comp
+L MCP6001 U2
+U 1 1 5D9C8ADC
+P 2800 3750
+F 0 "U2" H 2800 3950 50  0000 L CNN
+F 1 "MCP6242" H 2800 3550 50  0000 L CNN
+F 2 "" H 2800 3750 50  0001 C CNN
+F 3 "" H 2800 3950 50  0001 C CNN
+	1    2800 3750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4800 3100 4750 3100
+Wire Wire Line
+	4750 3100 4750 3750
+Wire Wire Line
+	4750 3750 3100 3750
+$Comp
+L R R4
+U 1 1 5D9C8E77
+P 2700 3100
+F 0 "R4" V 2780 3100 50  0000 C CNN
+F 1 "1M" V 2700 3100 50  0000 C CNN
+F 2 "" V 2630 3100 50  0001 C CNN
+F 3 "" H 2700 3100 50  0001 C CNN
+	1    2700 3100
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	3200 3750 3200 3100
+Wire Wire Line
+	3200 3100 2850 3100
+Connection ~ 3200 3750
+Wire Wire Line
+	2500 3650 2200 3650
+Wire Wire Line
+	2550 3100 2400 3100
+Wire Wire Line
+	2400 3100 2400 3650
+Connection ~ 2400 3650
+$Comp
+L R R3
+U 1 1 5D9C8F4C
+P 2050 3650
+F 0 "R3" V 2130 3650 50  0000 C CNN
+F 1 "20k" V 2050 3650 50  0000 C CNN
+F 2 "" V 1980 3650 50  0001 C CNN
+F 3 "" H 2050 3650 50  0001 C CNN
+	1    2050 3650
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	3750 3450 2700 3450
+Connection ~ 3750 3450
+$Comp
+L QRD1114-ND U1
+U 1 1 5D9C9182
+P 1550 3900
+F 0 "U1" H 1550 4100 60  0000 C CNN
+F 1 "QRD1114-ND" H 1550 3625 60  0000 C CNN
+F 2 "digikey-footprints:Reflective_Sensor_QRD1114" H 1875 4100 60  0001 L CNN
+F 3 "" H 1750 4200 60  0001 L CNN
+	1    1550 3900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1900 3650 1850 3650
+Wire Wire Line
+	1850 3500 1850 3800
+Connection ~ 1850 3650
+Wire Wire Line
+	1850 4000 1900 4000
+Wire Wire Line
+	1900 4000 1900 4400
+Wire Wire Line
+	1900 4400 1200 4400
+Wire Wire Line
+	1200 4400 1200 4000
+Wire Wire Line
+	1200 4000 1250 4000
+$Comp
+L GND #PWR1
+U 1 1 5D9C9367
+P 1550 4450
+F 0 "#PWR1" H 1550 4200 50  0001 C CNN
+F 1 "GND" H 1550 4300 50  0000 C CNN
+F 2 "" H 1550 4450 50  0001 C CNN
+F 3 "" H 1550 4450 50  0001 C CNN
+	1    1550 4450
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1550 4400 1550 4450
+Connection ~ 1550 4400
+$Comp
+L R R2
+U 1 1 5D9C941F
+P 1850 3350
+F 0 "R2" V 1930 3350 50  0000 C CNN
+F 1 "10k" V 1850 3350 50  0000 C CNN
+F 2 "" V 1780 3350 50  0001 C CNN
+F 3 "" H 1850 3350 50  0001 C CNN
+	1    1850 3350
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R1
+U 1 1 5D9C945D
+P 1200 3350
+F 0 "R1" V 1280 3350 50  0000 C CNN
+F 1 "300" V 1200 3350 50  0000 C CNN
+F 2 "" V 1130 3350 50  0001 C CNN
+F 3 "" H 1200 3350 50  0001 C CNN
+	1    1200 3350
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1200 3500 1200 3800
+Wire Wire Line
+	1200 3800 1250 3800
+Wire Wire Line
+	1200 3200 1200 3100
+Wire Wire Line
+	1200 3100 1850 3100
+Wire Wire Line
+	1850 3100 1850 3200
+Wire Wire Line
+	3750 2750 1550 2750
+Wire Wire Line
+	1550 2750 1550 3100
+Connection ~ 1550 3100
+Connection ~ 3750 2750
+$Comp
+L POT RV1
+U 1 1 5D9C9582
+P 2450 4200
+F 0 "RV1" V 2275 4200 50  0000 C CNN
+F 1 "10k POT" V 2350 4200 50  0000 C CNN
+F 2 "" H 2450 4200 50  0001 C CNN
+F 3 "" H 2450 4200 50  0001 C CNN
+	1    2450 4200
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	2500 3850 2450 3850
+Wire Wire Line
+	2450 3850 2450 4050
+Wire Wire Line
+	2700 4050 2700 4250
+Wire Wire Line
+	2700 4200 2600 4200
+Connection ~ 2700 4200
+$Comp
+L GND #PWR2
+U 1 1 5D9C97BA
+P 2700 4250
+F 0 "#PWR2" H 2700 4000 50  0001 C CNN
+F 1 "GND" H 2700 4100 50  0000 C CNN
+F 2 "" H 2700 4250 50  0001 C CNN
+F 3 "" H 2700 4250 50  0001 C CNN
+	1    2700 4250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2250 2750 2250 4200
+Wire Wire Line
+	2250 4200 2300 4200
+Connection ~ 2250 2750
+Wire Wire Line
+	7300 2300 7650 2300
+$Comp
+L R R5
+U 1 1 5D9C9AC4
+P 7800 2300
+F 0 "R5" V 7880 2300 50  0000 C CNN
+F 1 "300" V 7800 2300 50  0000 C CNN
+F 2 "" V 7730 2300 50  0001 C CNN
+F 3 "" H 7800 2300 50  0001 C CNN
+	1    7800 2300
+	0    1    1    0   
+$EndComp
+$Comp
+L 4N35 U6
+U 1 1 5D9C9B21
+P 8400 2400
+F 0 "U6" H 8400 2600 60  0000 C CNN
+F 1 "4N35" H 8400 2075 60  0000 C CNN
+F 2 "digikey-footprints:DIP-6_W7.62mm" H 8600 2600 60  0001 L CNN
+F 3 "http://optoelectronics.liteon.com/upload/download/DS-70-99-0012/4N3X%20Series%201115.pdf" H 8600 2700 60  0001 L CNN
+F 4 "160-1304-5-ND" H 8600 2800 60  0001 L CNN "Digi-Key_PN"
+F 5 "4N35" H 8600 2900 60  0001 L CNN "MPN"
+F 6 "Isolators" H 8600 3000 60  0001 L CNN "Category"
+F 7 "Optoisolators - Transistor, Photovoltaic Output" H 8600 3100 60  0001 L CNN "Family"
+F 8 "http://optoelectronics.liteon.com/upload/download/DS-70-99-0012/4N3X%20Series%201115.pdf" H 8600 3200 60  0001 L CNN "DK_Datasheet_Link"
+F 9 "/product-detail/en/lite-on-inc/4N35/160-1304-5-ND/385766" H 8600 3300 60  0001 L CNN "DK_Detail_Page"
+F 10 "OPTOISO 3.55KV TRANS W/BASE 6DIP" H 8600 3400 60  0001 L CNN "Description"
+F 11 "Lite-On Inc." H 8600 3500 60  0001 L CNN "Manufacturer"
+F 12 "Active" H 8600 3600 60  0001 L CNN "Status"
+	1    8400 2400
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7950 2300 8100 2300
+Wire Wire Line
+	8100 2500 7950 2500
+Wire Wire Line
+	7950 2500 7950 2700
+$Comp
+L GND #PWR5
+U 1 1 5D9C9C9A
+P 7950 2700
+F 0 "#PWR5" H 7950 2450 50  0001 C CNN
+F 1 "GND" H 7950 2550 50  0000 C CNN
+F 2 "" H 7950 2700 50  0001 C CNN
+F 3 "" H 7950 2700 50  0001 C CNN
+	1    7950 2700
+	1    0    0    -1  
+$EndComp
+$Comp
+L IRLB8721PBF Q1
+U 1 1 5D9C9CC6
+P 9500 2750
+F 0 "Q1" H 9750 2825 50  0000 L CNN
+F 1 "IRLB8721PBF" H 9750 2750 50  0000 L CNN
+F 2 "TO_SOT_Packages_THT:TO-220_Vertical" H 9750 2675 50  0001 L CIN
+F 3 "" H 9500 2750 50  0001 L CNN
+	1    9500 2750
+	1    0    0    -1  
+$EndComp
+$Comp
+L R R6
+U 1 1 5D9CA0DD
+P 8750 2800
+F 0 "R6" V 8830 2800 50  0000 C CNN
+F 1 "1M" V 8750 2800 50  0000 C CNN
+F 2 "" V 8680 2800 50  0001 C CNN
+F 3 "" H 8750 2800 50  0001 C CNN
+	1    8750 2800
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8700 2600 8750 2600
+Wire Wire Line
+	8750 2600 8750 2650
+Wire Wire Line
+	8750 2950 8750 3150
+Wire Wire Line
+	8750 3150 9600 3150
+$Comp
+L R R7
+U 1 1 5D9CA1FE
+P 8950 2800
+F 0 "R7" V 9030 2800 50  0000 C CNN
+F 1 "10k" V 8950 2800 50  0000 C CNN
+F 2 "" V 8880 2800 50  0001 C CNN
+F 3 "" H 8950 2800 50  0001 C CNN
+	1    8950 2800
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8700 2500 8950 2500
+Wire Wire Line
+	8950 2500 8950 2650
+Wire Wire Line
+	8950 2950 8950 3150
+Connection ~ 8950 3150
+Wire Wire Line
+	8700 1900 8700 2300
+Wire Wire Line
+	8700 1900 9600 1900
+Wire Wire Line
+	4250 2700 4250 1000
+Wire Wire Line
+	4250 1000 9100 1000
+Wire Wire Line
+	9100 1000 9100 1900
+Connection ~ 9100 1900
+$Comp
+L 1N4001-G D1
+U 1 1 5D9CA83E
+P 8950 2150
+F 0 "D1" H 8950 2250 60  0000 C BNN
+F 1 "1N4001-G" H 8950 2050 60  0000 C CNN
+F 2 "digikey-footprints:DO-41" H 9150 2350 60  0001 L CNN
+F 3 "http://www.comchiptech.com/admin/files/product/1N4001-G%20Thru.%201N4007-G%20RevB.pdf" H 9150 2450 60  0001 L CNN
+F 4 "641-1310-1-ND" H 9150 2550 60  0001 L CNN "Digi-Key_PN"
+F 5 "1N4001-G" H 9150 2650 60  0001 L CNN "MPN"
+F 6 "Discrete Semiconductor Products" H 9150 2750 60  0001 L CNN "Category"
+F 7 "Diodes - Rectifiers - Single" H 9150 2850 60  0001 L CNN "Family"
+F 8 "http://www.comchiptech.com/admin/files/product/1N4001-G%20Thru.%201N4007-G%20RevB.pdf" H 9150 2950 60  0001 L CNN "DK_Datasheet_Link"
+F 9 "/product-detail/en/comchip-technology/1N4001-G/641-1310-1-ND/1979675" H 9150 3050 60  0001 L CNN "DK_Detail_Page"
+F 10 "DIODE GEN PURP 50V 1A DO41" H 9150 3150 60  0001 L CNN "Description"
+F 11 "Comchip Technology" H 9150 3250 60  0001 L CNN "Manufacturer"
+F 12 "Active" H 9150 3350 60  0001 L CNN "Status"
+	1    8950 2150
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	8950 1900 8950 1950
+Connection ~ 8950 1900
+$Comp
+L C C1
+U 1 1 5D9CA9D5
+P 9250 2100
+F 0 "C1" H 9275 2200 50  0000 L CNN
+F 1 "0.1u" H 9275 2000 50  0000 L CNN
+F 2 "" H 9288 1950 50  0001 C CNN
+F 3 "" H 9250 2100 50  0001 C CNN
+	1    9250 2100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9250 1950 9250 1900
+Connection ~ 9250 1900
+Wire Wire Line
+	8950 2350 8950 2450
+Wire Wire Line
+	9250 2250 9250 2500
+Connection ~ 9250 2450
+$Comp
+L Motor_DC M1
+U 1 1 5D9CAC7A
+P 9600 2150
+F 0 "M1" H 9700 2250 50  0000 L CNN
+F 1 "Motor_DC" H 9700 1950 50  0000 L TNN
+F 2 "" H 9600 2060 50  0001 C CNN
+F 3 "" H 9600 2060 50  0001 C CNN
+	1    9600 2150
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9600 1900 9600 1950
+Wire Wire Line
+	8950 2450 9250 2450
+Wire Wire Line
+	9250 2500 9600 2500
+Wire Wire Line
+	9600 2450 9600 2550
+Connection ~ 9600 2500
+Wire Wire Line
+	9600 3150 9600 2950
+Wire Wire Line
+	9300 2800 9300 2600
+Wire Wire Line
+	9300 2600 8950 2600
+Connection ~ 8950 2600
+Wire Wire Line
+	9200 3150 9200 3200
+Connection ~ 9200 3150
+$Comp
+L GND #PWR6
+U 1 1 5D9CB342
+P 9200 3200
+F 0 "#PWR6" H 9200 2950 50  0001 C CNN
+F 1 "GND" H 9200 3050 50  0000 C CNN
+F 2 "" H 9200 3200 50  0001 C CNN
+F 3 "" H 9200 3200 50  0001 C CNN
+	1    9200 3200
+	1    0    0    -1  
+$EndComp
+$EndSCHEMATC
