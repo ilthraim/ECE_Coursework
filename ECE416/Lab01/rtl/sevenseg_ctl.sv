@@ -1,15 +1,16 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
+// Company: Lafayette College
+// Engineer: Ethan Miller, John Burk
 // 
 // Create Date: 02/11/2021 02:21:43 PM
 // Design Name: 
 // Module Name: sevenseg_ctl
-// Project Name: 
-// Target Devices: 
+// Project Name: Lab 01
+// Target Devices: Nexys A7
 // Tool Versions: 
-// Description: 
+// Description: Implements the extended seven segment display using time-multiplexing; rapidly toggles each individual digit
+// with segment data for each. High refresh rate creates a solid image with no flicker.
 // 
 // Dependencies: 
 // 

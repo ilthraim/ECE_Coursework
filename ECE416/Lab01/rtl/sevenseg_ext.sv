@@ -1,15 +1,16 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
+// Company: Lafayette College
+// Engineer: Ethan Miller, John Burk
 // 
 // Create Date: 02/11/2021 01:22:12 PM
 // Design Name: 
 // Module Name: sevenseg_ext
-// Project Name: 
-// Target Devices: 
+// Project Name: Lab 01
+// Target Devices: Nexys A7 
 // Tool Versions: 
-// Description: 
+// Description: Seven segment decoder that's capable of taking inputs from switches or other data inputs
+// to display on the FPGA
 // 
 // Dependencies: 
 // 

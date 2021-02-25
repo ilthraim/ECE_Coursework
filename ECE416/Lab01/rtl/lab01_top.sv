@@ -1,15 +1,16 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
+// Company: Lafayette College
+// Engineer: Ethan Miller, John Burk
 // 
 // Create Date: 02/11/2021 02:30:13 PM
 // Design Name: 
 // Module Name: lab01_top
-// Project Name: 
-// Target Devices: 
+// Project Name: Lab 01
+// Target Devices: Nexys A7
 // Tool Versions: 
-// Description: 
+// Description: Top module of Lab 01 for ECE 416; implements temperature sensor, 
+// seven segment display/decoder, and a binary2bcd module. Displays dashes on digits 7-5, black on digit 4, temp ints on 3-1, a decimal point, and a C for celsius.
 // 
 // Dependencies: 
 // 

@@ -1,15 +1,16 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
+// Company: Lafayette College
+// Engineer: Ethan Miller, John Burk
 // 
 // Create Date: 02/11/2021 01:40:43 PM
 // Design Name: 
 // Module Name: sevenseg_ext_top
-// Project Name: 
-// Target Devices: 
+// Project Name: Lab 01
+// Target Devices: Nexys A7
 // Tool Versions: 
-// Description: 
+// Description: Top level unit test for the sevenseg controller. Uses switches 6-0 to configure display in accordance with requirements
+// outlined on the lab document. See the master constraints file to enable switches.
 // 
 // Dependencies: 
 // 
