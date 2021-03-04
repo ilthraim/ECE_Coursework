@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Module Name   : rate_enb
-// Project       : RTL Hardware Design and Verification using SystemVerilog
+// Project       : Lab02 - Serial Data Transmitter
 //-----------------------------------------------------------------------------
 // Author        : John Nestor  <nestorj@lafayette.edu>
 // Created       : Jun 2020

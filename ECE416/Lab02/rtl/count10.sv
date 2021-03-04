@@ -1,11 +1,13 @@
 //-----------------------------------------------------------------------------
-// Module Name   : counter
-// Project       : RTL Hardware Design and Verification using SystemVerilog
+// Module Name   : count10
+// Project       : Lab02 - Serial Data Transmitter
 //-----------------------------------------------------------------------------
 // Author        : John Nestor  <nestorj@lafayette.edu>
+// Co-author     : Modified by Ethan Miller and John Burk
 // Created       : Jun 2020
 //-----------------------------------------------------------------------------
-// Description   : Basic binary counter with enable & sync. reset
+// Description   : Basic binary counter with enable & sync. reset; modified for
+// 10 count to determine when to stop shift register.
 //-----------------------------------------------------------------------------
 
 module  count10 #(parameter W=4) (

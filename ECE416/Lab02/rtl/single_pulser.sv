@@ -1,6 +1,6 @@
 //-----------------------------------------------------------------------------
 // Module Name   : single_pulser
-// Project       : RTL Hardware Design and Verification using SystemVerilog
+// Project       : Lab02 - Serial Data Transmitter
 //-----------------------------------------------------------------------------
 // Author        : John Nestor  <nestorj@lafayette.edu>
 // Created       : Feb. 2021

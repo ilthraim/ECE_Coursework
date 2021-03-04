@@ -1,3 +1,13 @@
+//-----------------------------------------------------------------------------
+// Module Name   : uart_xmit
+// Project       : Lab02 - Serial Data Transmitter
+//-----------------------------------------------------------------------------
+// Author        : Ethan Miller, John Burk  <millerek@lafayette.edu, burkj@lafayette.edu>
+// Created       : Feb 2021
+//-----------------------------------------------------------------------------
+// Description   : Top-level for UART transmitter. Implements the FSM, shift register, counter, and rate enable modules
+//-----------------------------------------------------------------------------
+
 module uart_xmit #(BAUD_RATE=9600) (
     input logic clk100MHz, rst, valid, [7:0] data, 
     output logic rdy, txd 

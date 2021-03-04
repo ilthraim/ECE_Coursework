@@ -1,3 +1,18 @@
+//-----------------------------------------------------------------------------
+// Module Name   : lab02_top
+// Project       : Lab02 - Serial Data Transmitter
+//-----------------------------------------------------------------------------
+// Author        : Ethan Miller, John Burk  <millerek@lafayette.edu, burkj@lafayette.edu>
+// Created       : Feb 2021
+//-----------------------------------------------------------------------------
+// Description   : Top level for lab 2.
+// Description   : Implements the pulser and uart_xmit modules, interfaces with the USB-UART bridge, 
+// accepts data inputs as well as single and continuous transmission triggers. 
+// The single pulser is OR'd with the continuous signal since either can assert the valid bit. 
+// Data is passed using switches. LED0/rdy_led signifies that rdy signal is working in hardware, 
+// while JA[1] and [2] are used to view rdy and txd waveforms on an oscilloscope. 
+//-----------------------------------------------------------------------------
+
 `timescale 1ns / 1ps
 
 module lab02_top #(BAUD_RATE=9600) (

@@ -1,23 +1,13 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 03/02/2021 01:35:16 PM
-// Design Name: 
-// Module Name: uart_tb
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+// Module Name   : uart_tb
+// Project       : Lab02 - Serial Data Transmitter
+//-----------------------------------------------------------------------------
+// Author        : Ethan Miller, John Burk  <millerek@lafayette.edu, burkj@lafayette.edu>
+// Created       : Feb 2021
+//-----------------------------------------------------------------------------
+// Description   : Testbench for lab 2 (stimulus-only)
+//-----------------------------------------------------------------------------
 
 
 module uart_tb();
