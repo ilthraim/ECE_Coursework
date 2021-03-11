@@ -101,13 +101,15 @@ module manchester_xmit #(parameter BIT_RATE = 50000, parameter IDLE_BITS = 2) (
                         sh_en = 1'b1;
                         next = TXBIT_LOW;
                     end else begin
+                        rdy = 1'b1;
                         if (valid) begin
                             sh_ld = 1'b1;
                             br_st = 1'b1;
                             ct_clr = 1'b1;
                             next = TXBIT_LOW;
-                            rdy = 1'b1;
-                        end else begin next = IDLE_TX;
+                            
+                        end else begin
+                            next = IDLE_TX;
                             ib_ct_clr = 1'b1;
                         end
                     end
@@ -118,9 +120,8 @@ module manchester_xmit #(parameter BIT_RATE = 50000, parameter IDLE_BITS = 2) (
             IDLE_TX: begin
                 txen = 1'b1;
                 txd = 1'b1;
-                
                 if (enb_out) begin
-                    if (ib_ct == (IDLE_BITS - 1))
+                    if (ib_ct == (IDLE_BITS))
                         next = IDLE;
                     else
                         ib_ct_enb = 1'b1;
