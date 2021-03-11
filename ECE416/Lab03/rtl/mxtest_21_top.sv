@@ -1,12 +1,11 @@
 //-----------------------------------------------------------------------------
-// Module Name   : mx21_top - top-level module for mxtest_21
+// Module Name   : mxtest_21_top
 // Project       : ECE 416 Advanced Digital Design & Verification
 //-----------------------------------------------------------------------------
-// Author        : John Nestor
-// Created       : March 1 2021
+// Author        : Ethan Miller, John Burk
+// Created       : March 4 2021
 //-----------------------------------------------------------------------------
-// Description   : Generates a burst of characters on the ready-valid
-// interface of the UART transmitter when send is asserted
+// Description   : Top level testing module for the Manchester Transmitter.
 //-----------------------------------------------------------------------------
 
 module mxtest_21_top(

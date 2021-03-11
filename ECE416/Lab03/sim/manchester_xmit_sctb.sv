@@ -1,11 +1,11 @@
 //-----------------------------------------------------------------------------
-// Module Name   : uart_xmit_sctb
-// Project       : RTL Hardware Design and Verification using SystemVerilog
+// Module Name   : mx_stimulus
+// Project       : Lab02 - Serial Data Transmitter
 //-----------------------------------------------------------------------------
-// Author        : John Nestor  <nestorj@lafayette.edu>
-// Created       : Jun 2020
+// Author        : Ethan Miller, John Burk  <millerek@lafayette.edu, burkj@lafayette.edu>
+// Created       : March 2021
 //-----------------------------------------------------------------------------
-// Description   : Self-checking testbench for UART transmitter
+// Description   : Self-checking testbench for a Manchester Transmitter.
 //-----------------------------------------------------------------------------
 
 module manchester_xmit_sctb (
@@ -31,17 +31,17 @@ module manchester_xmit_sctb (
              $display("%t error: expected txd=%h actual txd=%h",
                       $time, exp_txd, txd);
              errcount++;
-        end else $display("test passed at time %t", $time);
+        end else $display("correct txd signal at time %t", $time);
         if (rdy != exp_rdy) begin
             $display("%t error: expected rdy=%h actual rdy=%h",
                      $time, exp_rdy, rdy);
              errcount++;
-        end else $display("test passed at time %t", $time);
+        end else $display("correct rdy signal at time %t", $time);
         if (txen != exp_txen) begin
             $display("%t error: expected txen=%h actual txen=%h",
                      $time, exp_txen, txen);
              errcount++;
-        end else $display("test passed at time %t", $time);
+        end else $display("correct txen signal at time %t", $time);
     endtask: check
 
     task report_errors;

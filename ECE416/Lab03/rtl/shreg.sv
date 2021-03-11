@@ -5,8 +5,8 @@
 // Author        : Ethan Miller, John Burk  <millerek@lafayette.edu, burkj@lafayette.edu>
 // Created       : Feb 2021
 //-----------------------------------------------------------------------------
-// Description   : 10-bit shift register used to load start bit, 8 bits of data, and stop bit; 
-// loads when ready and valid = 1 and stops shift after the final bit is transmitted (using count10 to count 10 increments). 
+// Description   : 8-bit shift register used to load start bit, 8 bits of data, and stop bit; 
+// loads when ready and valid = 1 and stops shift after the final bit is transmitted 
 //-----------------------------------------------------------------------------
 module shreg (
     input logic clk, rst, sh_idle, sh_ld, sh_en,
