@@ -1,3 +1,14 @@
+//-----------------------------------------------------------------------------
+// Module Name   : Lab04_top
+// Project       : RTL Hardware Design and Verification using SystemVerilog
+//-----------------------------------------------------------------------------
+// Author        : Ethan Miller & John Burk
+// Created       : March 2021
+//-----------------------------------------------------------------------------
+// Description   : Top level used to instantiate receiver in hardware. 
+// Data is received through Tera Term/Realterm and is displayed as hexadecimal on the seven-seg display. 
+// BTNC for rdy, BTNU for rst. LED0 = oerr, LED1 = ferr, LED2 = valid.
+//-----------------------------------------------------------------------------
 
 module Lab04_top(
     input logic clk, rst, rdy, rxd,

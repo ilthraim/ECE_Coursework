@@ -1,23 +1,13 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 03/18/2021 03:15:32 PM
-// Design Name: 
-// Module Name: uart_stim
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+// Module Name   : uart_stim
+// Project       : RTL Hardware Design and Verification using SystemVerilog
+//-----------------------------------------------------------------------------
+// Author        : Ethan Miller & John Burk
+// Created       : March 2021
+//-----------------------------------------------------------------------------
+// Description   : Stimulus-only TB for UART rxd
+//-----------------------------------------------------------------------------
 
 
 module uart_stim();

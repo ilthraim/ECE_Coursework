@@ -1,4 +1,20 @@
+//-----------------------------------------------------------------------------
+// Module Name   : control_fsm
+// Project       : RTL Hardware Design and Verification using SystemVerilog
+//-----------------------------------------------------------------------------
+// Author        : Ethan Miller & John Burk
+// Created       : March 2021
+//-----------------------------------------------------------------------------
+// A breakdown of the control FSM is as follows (ASM available in Fig. 2):
+// 1.	Check for a falling edge (sampling for ~rxd)
+// 2.	When a falling edge is detected, (START_TENT (tentative start)) recheck in the middle of the start bit; if the edge is not a glitch, return to WAIT_RDY.
+// 3.	Use count10 to sample through received bits.
+// 4.	On the stop bit, throw ferr when the value is incorrect
+// 5.	Otherwise, set valid to high.
+// 6.	Repeat
+// oerr should be asserted when valid is high, a new start bit is present, and rdy has not been reasserted. oerr stays asserted until rdy is reasserted. 
 
+//-----------------------------------------------------------------------------
 module control_fsm(
     input logic clk, rst, rxd, enb_out, cteq9, cteq7, cteq15, rdy,
     output logic clr, clr10, enb10, clr16, enb16, sh_ld, valid, ferr, oerr);

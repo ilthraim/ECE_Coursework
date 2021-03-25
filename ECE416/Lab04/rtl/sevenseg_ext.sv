@@ -1,4 +1,23 @@
-
+//////////////////////////////////////////////////////////////////////////////////
+// Company: Lafayette College
+// Engineer: Ethan Miller, John Burk
+// 
+// Create Date: 02/11/2021 01:22:12 PM
+// Design Name: 
+// Module Name: sevenseg_ext
+// Project Name: Lab 01
+// Target Devices: Nexys A7 
+// Tool Versions: 
+// Description: Seven segment decoder that's capable of taking inputs from switches or other data inputs
+// to display on the FPGA
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
 module sevenseg_ext(
     input logic [6:0] d,
     output logic [6:0] segs_n,

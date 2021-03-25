@@ -1,23 +1,12 @@
-
-//////////////////////////////////////////////////////////////////////////////////
-// Company:
-// Engineer:
-//
-// Create Date: 03/18/2021 01:25:23 PM
-// Design Name:
-// Module Name: shreg
-// Project Name:
-// Target Devices:
-// Tool Versions:
-// Description:
-//
-// Dependencies:
-//
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-//
-//////////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+// Module Name   : shreg
+// Project       : RTL Hardware Design and Verification using SystemVerilog
+//-----------------------------------------------------------------------------
+// Author        : Ethan Miller & John Burk
+// Created       : March 2021
+//-----------------------------------------------------------------------------
+// Description   : Shift register used for loading data + start and stop bits
+//-----------------------------------------------------------------------------
 
 
 module shreg(input logic clk, rst, rxd, sh_ld, output logic [7:0] data);

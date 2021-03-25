@@ -1,4 +1,14 @@
 
+//-----------------------------------------------------------------------------
+// Module Name   : uart_txd_rxd_sctb
+// Project       : RTL Hardware Design and Verification using SystemVerilog
+//-----------------------------------------------------------------------------
+// Author        : Ethan Miller & John Burk
+// Created       : March 2021
+//-----------------------------------------------------------------------------
+// Description   : Self-checking testbench for implementation of receiver.
+// Tests for framing + overrun errors as well as proper data reception
+//-----------------------------------------------------------------------------
 
 module uart_rxd_sctb();
     parameter CLK_PD = 10;

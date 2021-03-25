@@ -1,3 +1,13 @@
+//-----------------------------------------------------------------------------
+// Module Name   : uart_rxd
+// Project       : RTL Hardware Design and Verification using SystemVerilog
+//-----------------------------------------------------------------------------
+// Author        : Ethan Miller & John Burk
+// Created       : March 2021
+//-----------------------------------------------------------------------------
+// Description   : Top-level that integrates the appropriate input and output 
+// logic as well as the integrated shift register, control FSM, counters, and rate enable modules. 
+//-----------------------------------------------------------------------------
 
 module uart_rxd #(parameter BAUD_RATE=9600)(
     input logic clk, rst, rxd, rdy,
