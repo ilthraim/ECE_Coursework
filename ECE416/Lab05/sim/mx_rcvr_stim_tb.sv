@@ -33,7 +33,7 @@ module mx_rcvr_stim_tb();
     endtask: send_zero
     
     task send_error;
-        rxd = 1;
+        rxd = 0;
         #(BIT_DELAY);
     endtask: send_error
     

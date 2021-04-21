@@ -4,15 +4,17 @@ module mx_rcvr_fsm(
 
     typedef enum logic [2:0] {WAIT_PRE, WAIT_SFD, WAIT_BIT, RCV_BIT, WAIT_POST_BIT, WAIT_EOF_NF, EOF_NF} states_t;
     states_t state, next;
-    logic [2:0] count1;
+    logic [3:0] count1;
     logic [6:0] count2;
-    logic cteq7, clr1, enb1, cteq3, cteq8, cteq127, cteq15, clr2, enb2, set_cardet, clr_cardet, set_err, clr_err, set_valid, clr_valid;
+    logic cteq7, ct1eq8, clr1, enb1, cteq3, cteq8, cttest, cteq127, cteq15, clr2, enb2, set_cardet, clr_cardet, set_err, clr_err, set_valid, clr_valid;
 
-    assign cteq7 = (count1 == 3'd7);
-    assign cteq3 = (count2 == 7'd3);
+    assign cteq7 = (count1 == 4'd7);
+    assign ct1eq8 = (count1 == 4'd8);
+    assign cteq3 = (count2 == 7'd5);
     assign cteq8 = (count2 == 7'd8);
+    assign cttest = (count2 == 7'd10);
     assign cteq15 = (count2 == 7'd13);
-    assign cteq127 = (count2 == 7'd127);
+    assign cteq127 = (count2 == 7'd64);
 
     always_ff @(posedge clk) begin
         if (rst) begin
@@ -64,7 +66,10 @@ module mx_rcvr_fsm(
             end
             WAIT_SFD: begin
                 if (enb8) begin
-                    if (SFD_out) begin
+                    if (pre_out) begin
+                        clr2 = 1;
+                        next = WAIT_PRE;
+                    end else if (SFD_out) begin
                         clr8 = 1;
                         clr2 = 1;
                         clr1 = 1;
@@ -82,7 +87,7 @@ module mx_rcvr_fsm(
             end
             WAIT_BIT: begin
                 if (enb16) begin
-                    if (cteq8) begin
+                    if (cttest) begin
                         clr2 = 1;
                         next = RCV_BIT;
                     end else begin
@@ -98,17 +103,16 @@ module mx_rcvr_fsm(
                         sh_in = h_out;
                         if (cteq7) begin
                             set_valid = 1;
-                            clr8 = 1;
                             clr2 = 1;
-                            clr1 = 1;
-                            next = WAIT_EOF_NF;
+                            next = WAIT_POST_BIT;
+                            enb1 = 1;
                         end else begin
                             clr2 = 1;
                             enb1 = 1;
                             next = WAIT_POST_BIT;
                         end
                     end else begin
-                        if (cteq8) begin
+                        if (cteq3) begin
                             set_err = 1;
                             clr_cardet = 1;
                             next = WAIT_PRE;
@@ -120,10 +124,15 @@ module mx_rcvr_fsm(
                 end else next = RCV_BIT;
             end
             WAIT_POST_BIT: begin
+                clr_valid = 1;
                 if (enb16) begin
                     if (cteq15) begin
                         clr2 = 1;
-                        next = RCV_BIT;
+                        if (ct1eq8) begin
+                            clr16 = 1;
+                            clr1 = 1;
+                            next = EOF_NF;
+                        end else next = RCV_BIT;
                     end else begin
                         enb2 = 1;
                         next = WAIT_POST_BIT;
@@ -131,7 +140,7 @@ module mx_rcvr_fsm(
                 end else next = WAIT_POST_BIT;
             end
             WAIT_EOF_NF: begin
-                clr_valid = 1;
+
                 if (enb16) begin
                     if (cteq8) next = EOF_NF;
                     else begin
