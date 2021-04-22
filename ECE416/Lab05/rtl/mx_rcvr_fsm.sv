@@ -1,3 +1,14 @@
+//-----------------------------------------------------------------------------
+// Module Name   : mx_rcvr_fsm
+// Project       : Manchester Receiver
+//-----------------------------------------------------------------------------
+// Author        : Ethan Miller & John Burk
+// Created       : April 2021
+//-----------------------------------------------------------------------------
+// Description   : FSM for operation of Manchester Receiver. Full breakdown
+// of operation is available in lab documentation
+//-----------------------------------------------------------------------------
+
 module mx_rcvr_fsm(
     input logic clk, rst, enb16, enb8, one_out, zero_out, h_out, l_out, SFD_out, pre_out,
     output logic valid, cardet, error, clr16, clr8, sh_ld, sh_in);
@@ -6,15 +17,15 @@ module mx_rcvr_fsm(
     states_t state, next;
     logic [3:0] count1;
     logic [6:0] count2;
-    logic cteq7, ct1eq8, clr1, enb1, cteq3, cteq8, cttest, cteq127, cteq15, clr2, enb2, set_cardet, clr_cardet, set_err, clr_err, set_valid, clr_valid;
+    logic cteq7, ct1eq8, clr1, enb1, cteq5, cteq8, cttest, cteq64, cteq13, clr2, enb2, set_cardet, clr_cardet, set_err, clr_err, set_valid, clr_valid;
 
     assign cteq7 = (count1 == 4'd7);
     assign ct1eq8 = (count1 == 4'd8);
-    assign cteq3 = (count2 == 7'd5);
+    assign cteq5 = (count2 == 7'd5);
     assign cteq8 = (count2 == 7'd8);
     assign cttest = (count2 == 7'd10);
-    assign cteq15 = (count2 == 7'd13);
-    assign cteq127 = (count2 == 7'd64);
+    assign cteq13 = (count2 == 7'd13);
+    assign cteq64 = (count2 == 7'd64);
 
     always_ff @(posedge clk) begin
         if (rst) begin
@@ -75,7 +86,7 @@ module mx_rcvr_fsm(
                         clr1 = 1;
                         next = WAIT_BIT;
                     end else begin
-                        if (cteq127) begin
+                        if (cteq64) begin
                             clr_cardet = 1;
                             next = WAIT_PRE;
                         end else begin
@@ -112,7 +123,7 @@ module mx_rcvr_fsm(
                             next = WAIT_POST_BIT;
                         end
                     end else begin
-                        if (cteq3) begin
+                        if (cteq5) begin
                             set_err = 1;
                             clr_cardet = 1;
                             next = WAIT_PRE;
@@ -126,7 +137,7 @@ module mx_rcvr_fsm(
             WAIT_POST_BIT: begin
                 clr_valid = 1;
                 if (enb16) begin
-                    if (cteq15) begin
+                    if (cteq13) begin
                         clr2 = 1;
                         if (ct1eq8) begin
                             clr16 = 1;

@@ -1,23 +1,14 @@
-
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 04/08/2021 01:21:57 PM
-// Design Name: 
-// Module Name: mx_rcvr
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
+//-----------------------------------------------------------------------------
+// Module Name   : mx_rcvr
+// Project       : Manchester Receiver
+//-----------------------------------------------------------------------------
+// Author        : Ethan Miller & John Burk
+// Created       : April 2021
+//-----------------------------------------------------------------------------
+// Description   : Top level module integrating all inputs and outputs,
+// as well as the shreg, rate enbs, FSM, correlators. Counters done in RTL within
+// FSM
+//-----------------------------------------------------------------------------
 
 
 module mx_rcvr #(parameter BIT_RATE=50000)(
