@@ -1,4 +1,3 @@
-`timescale 1ns / 1ps
 //-----------------------------------------------------------------------------
 // Module Name   : manchester_xmit
 // Project       : RTL Hardware Design and Verification using SystemVerilog
@@ -116,9 +115,11 @@ module manchester_xmit #(parameter BIT_RATE = 50000, parameter IDLE_BITS = 2) (
                 if (enb_out) begin
                     if (ib_ct == (IDLE_BITS))
                         next = IDLE;
-                    else
+                    else begin
                         ib_ct_enb = 1'b1;
-                end
+                        next = IDLE_TX;
+                    end
+                end else next = IDLE_TX;
             end
             
         endcase

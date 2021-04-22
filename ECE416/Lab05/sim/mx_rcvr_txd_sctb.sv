@@ -7,7 +7,7 @@ module mx_rcvr_txd_sctb();
     logic [7:0] last_byte;
 
     mx_rcvr #(.BIT_RATE(50000)) U_RCVR (.clk, .rst, .rxd(rxd_rcvr), .valid(valid_rcvr), .cardet, .error, .data(data_out));
-    manchester_xmit #(49500) DUV (.clk, .rst, .valid(valid_txd), .data(data_in), .rdy, .txd, .txen);
+    manchester_xmit #(50000) DUV (.clk, .rst, .valid(valid_txd), .data(data_in), .rdy, .txd, .txen);
     parameter CLK_PD = 10;
     parameter BIT_DELAY = 20000;
     parameter PREAMBLE = 16'b0101010101010101;
@@ -78,7 +78,7 @@ module mx_rcvr_txd_sctb();
         send_byte(PREAMBLE[7:0]);
         send_byte(PREAMBLE[15:8]);
         send_byte(SFD);
-        send_bytes(255);
+        send_bytes(50);
         report_errors;
         $stop;
     end

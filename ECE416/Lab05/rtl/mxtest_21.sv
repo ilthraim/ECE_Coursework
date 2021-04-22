@@ -27,7 +27,7 @@ module mxtest_21(
         .clk, .rst, .clr(start_pause), .enb_out(end_pause)
     );
 
-    localparam BUFLEN = 32;
+    localparam BUFLEN = 35;
     localparam BUFW = $clog2(BUFLEN);
 
     // Address counter
@@ -35,7 +35,7 @@ module mxtest_21(
 
     // Message buffer - characters in frame to be sent
     logic [0:BUFLEN-1][7:0] buffer  = {
-        "Y","o","u","r"," ","m","e","s","s","a","g","e"," ","h","e","r",
+        8'b01010101, 8'b01010101, 8'b11010000, "Y","o","u","r"," ","m","e","s","s","a","g","e"," ","h","e","r",
         "e","@","@","@","@","@","@","@","@","@","@","@","@","E","N","D"
      };
 
@@ -76,7 +76,7 @@ module mxtest_21(
                 end
             end
             NEXTCH: begin
-                if (count != frame_len) next = WTRDY;
+                if (count != frame_len + 3) next = WTRDY;
                 else if (!rdy) next = NEXTCH;
                 else begin
                     start_pause = 1;
