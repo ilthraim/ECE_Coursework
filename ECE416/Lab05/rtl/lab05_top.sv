@@ -11,7 +11,6 @@ module lab05_top(
     mxtest_21 U_MXTEST(.clk, .rst, .send(run_out), .rdy(rdy_xmit), .frame_len(length), .data(data_xmit), .valid(valid_xmit));
     manchester_xmit #(.BIT_RATE(50000)) U_XMIT(.clk, .rst, .valid(valid_xmit), .data(data_xmit), .rdy(rdy_xmit), .txd, .txen);
     mx_rcvr #(.BIT_RATE(50000)) U_RCVR(.clk, .rst, .rxd(txd), .valid(valid_rcvr), .cardet, .error, .data(data_rcvr));
-    //fifo_generator_0 U_FIFO(.clk, .srst(rst), .din(data_rcvr), .wr_en(valid_rcvr), .rd_en, .dout(data_fifo), .empty);
     fwft_fifo U_FIFO(.clk, .srst(rst), .din(data_rcvr), .wr_en(valid_rcvr), .rd_en, .dout(data_fifo), .empty);
     uart_xmit #(.BAUD_RATE(9600)) U_UART_XMIT(.clk100MHz(clk), .rst, .valid(!empty), .data(data_fifo), .rdy(rd_en), .txd(uart_out));
     
