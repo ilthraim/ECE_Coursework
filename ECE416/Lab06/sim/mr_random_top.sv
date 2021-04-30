@@ -24,7 +24,7 @@ module mr_random_top;
 
     clk_gen #(.CLKPD(CLKPD_NS)) CG (.clk);
 
-    mr_random_tb  #(.CLKPD_NS(CLKPD_NS),.BIT_RATE(BIT_RATE), .NUM_FRAMES(25)) BENCH (
+    mr_random_tb  #(.CLKPD_NS(CLKPD_NS),.BIT_RATE(BIT_RATE)) BENCH (
         .clk, .rst, .txd(rxd), .cardet, .data, .valid, .eof, .error
     );
 

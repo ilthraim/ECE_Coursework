@@ -140,8 +140,8 @@ module mr_random_tb (
 
         constraint c_partial_bits { partial_bits inside { [1:6] }; };
 
-        //constraint c_payload_len { payload.size() dist {1:=20, [2:50]:=80}; }
-        constraint c_payload_len { payload.size() inside{[1:1]}; }
+        constraint c_payload_len { payload.size() inside{ [1:20]}; }
+        //constraint c_payload_len { payload.size() inside{[1:1]}; }
         
         constraint c_eof_len { eof_len dist {2:=60, [3:16]:=40}; }
 

@@ -1,18 +1,3 @@
-`timescale 1ns / 1ps
-//-----------------------------------------------------------------------------
-// Module Name   : manchester_xmit
-// Project       : RTL Hardware Design and Verification using SystemVerilog
-//-----------------------------------------------------------------------------
-// Author        : Ethan Miller, John Burk
-// Created       : March 2021
-//-----------------------------------------------------------------------------
-// Description   : Primary module containing the FSM control logic.
-// Iterates through transmission of high and low bits until the count hits 7 (8th bit),
-// checks valid, and either returns to the low-high transmission cycle or
-// transmits idle bits before returning to the IDLE state.
-//-----------------------------------------------------------------------------
-
-
 module manchester_xmit #(parameter BIT_RATE = 50000, parameter IDLE_BITS = 2) (
     input logic clk, rst, valid, [7:0] data,
     output logic rdy, txd, txen
