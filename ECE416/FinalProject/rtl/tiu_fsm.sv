@@ -1,13 +1,10 @@
-module xmit_controller(
-    input logic clk, rst, xvalid, xsend, mx_rdy, ACK_received, ACK_needed, cardet, [7:0]MAC, dest_addr, ftype,
-    output logic xrdy, xbusy, mx_valid, xerrcnt, write_en, read_en, [2:0] data_select, [8:0] write_address, read_address);
+module tiu_fsm(
+    input logic clk, rst, xvalid, xsend, mx_rdy, ACK_received, ACK_needed, MAC, dest_addr, ftype, cardet,
+    output logic xrdy, xbusy, mx_valid, xerrcnt, write_en, write_address, read_address, read_en, [2:0] data_select);
 
     typedef enum logic [4:0] {IDLE, LOAD_PREAMBLE, WAIT_DIFS, WAIT_DIFS_RANDOM, LOAD_SFD, LOAD_INFO, LOAD_SAMPLE, WAIT_SIFS, LOAD_FCS, LOAD_EOF, TRANSMIT, ACK_WAIT} states_t;
     states_t state, next;
     logic attempt_ct, attempt_ct_en, attempt_ct_clr, preamble_ct, preamble_ct_en, preamble_ct_clr, data_ct, data_ct_en, data_ct_clr, watchdog_ct, watchdog_ct_en, watchdog_ct_clr, xerrcnt_ct, xerrcnt_ct_en, xerrcnt_ct_clr, crc_en;
-    logic [8:0] write_address_next;
-    logic [8:0] read_address_next;
-    logic [2:0] data_select_next;
     localparam DIFS = 80;
     localparam SIFS = 40;
     localparam SLOT = 8;
@@ -24,12 +21,8 @@ module xmit_controller(
             data_ct <= 0;
             watchdog_ct <= 0;
             xerrcnt_ct <= 0;
-            data_select <= 0;
         end else begin
             state <= next;
-            write_address <= write_address_next;
-            data_select <= data_select_next;
-            read_address_next <= read_address;
             if (preamble_ct_clr) preamble_ct <= 0;
             else if (preamble_ct_en) preamble_ct <= preamble_ct + 1;
             if (watchdog_ct_clr) watchdog_ct <= 0;
@@ -44,10 +37,6 @@ module xmit_controller(
     end
 
     always_comb begin
-        write_address_next = write_address;
-        data_select_next = data_select;
-        read_address_next = read_address;
-        xrdy = 0;
         case (state)
             IDLE: begin
                 xrdy = 1;
@@ -70,15 +59,15 @@ module xmit_controller(
             end
             WAIT_DIFS_RANDOM: begin
                 watchdog_ct_en = 1;
-                if (watchdog_ct == (DIFS + SLOT * $urandom_range(1, 64)) * 8) begin
+                if (watchdog_ct == (DIFS + SLOT * $urandomrange(1, 64)) * 8) begin
                     if (cardet) next = WAIT_DIFS_RANDOM;
                     else next = LOAD_PREAMBLE;
                 end else next = WAIT_DIFS_RANDOM;
             end
             LOAD_PREAMBLE: begin
                 write_en = 1;
-                data_select_next = 3'd0;
-                write_address_next = write_address + 1;
+                data_select = 3'd0;
+                write_address = write_address + 1;
                 if (preamble_ct == PREAMBLE_LENGTH) next = LOAD_SFD;
                 else begin
                     preamble_ct_en = 1;
@@ -87,19 +76,20 @@ module xmit_controller(
             end
             LOAD_SFD: begin
                 write_en = 1;
-                data_select_next = 3'd1;
-                write_address_next = write_address + 1;
+                data_select = 3'd1;
+                write_address = write_address + 1;
                 next = LOAD_INFO;
             end
             LOAD_INFO: begin
                 write_en = 1;
-                write_address_next = write_address + 1;
-                data_select_next = data_select + 1;
-                if(data_select == 5) begin //or 4?
-                    if (ACK_needed) next = WAIT_SIFS;
-                    else next = LOAD_SAMPLE;
-                end
-                else next = LOAD_INFO;    
+                data_select = 3'd2;
+                write_address = write_address + 1;
+                data_select = 3'd3;
+                write_address = write_address + 1;
+                data_select = 3'd4;
+                write_address = write_address + 1;
+                if (ACK_needed) next = WAIT_SIFS;
+                else next = LOAD_SAMPLE;
             end
             WAIT_SIFS: begin
                 watchdog_ct_en = 1;
@@ -108,8 +98,8 @@ module xmit_controller(
             end
             LOAD_SAMPLE: begin
                 xrdy = 1;
-                data_select_next = 3'd5;
-                write_address_next = write_address + 1;
+                data_select = 3'd5;
+                write_address = write_address + 1;
                 if (xvalid) begin
                     data_ct_en = 1;
                     write_en = 1;
@@ -121,19 +111,19 @@ module xmit_controller(
             end
             LOAD_FCS: begin
                 write_en = 1;
-                data_select_next = 3'd6;
-                write_address_next = write_address + 1;
+                data_select = 3'd6;
+                write_address = write_address + 1;
                 next = LOAD_EOF;
             end
             LOAD_EOF: begin
                 write_en  = 1;
-                data_select_next = 3'd7;
-                write_address_next = write_address + 1;
+                data_select = 3'd7;
+                write_address = write_address + 1;
                 next = TRANSMIT;
             end
             TRANSMIT: begin
                 read_en = 1;
-                read_address_next = read_address + 1;
+                read_address = read_address + 1;
                 if (mx_rdy) begin
                     mx_valid = 1;
                     if (write_address == read_address) begin
