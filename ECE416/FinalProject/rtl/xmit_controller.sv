@@ -1,13 +1,14 @@
 module xmit_controller(
-    input logic clk, rst, xvalid, xsend, mx_rdy, ACK_received, ACK_needed, cardet, [7:0]MAC, dest_addr, ftype,
-    output logic xrdy, xbusy, mx_valid, xerrcnt, write_en, read_en, [2:0] data_select, [8:0] write_address, read_address);
+    input logic clk, rst, enb_out_uart, enb_out_mx, xvalid, xsend, mx_rdy, ACK_received, ACK_needed, cardet, [7:0]MAC, ftype, uart_in,
+    output logic xrdy, xbusy, mx_valid, xerrcnt, write_en, read_en,[7:0] dest_addr, [2:0] data_select, [8:0] write_address, read_address);
 
     typedef enum logic [4:0] {IDLE, LOAD_PREAMBLE, WAIT_DIFS, WAIT_DIFS_RANDOM, LOAD_SFD, LOAD_INFO, LOAD_SAMPLE, WAIT_SIFS, LOAD_FCS, LOAD_EOF, TRANSMIT, ACK_WAIT} states_t;
     states_t state, next;
-    logic attempt_ct, attempt_ct_en, attempt_ct_clr, preamble_ct, preamble_ct_en, preamble_ct_clr, data_ct, data_ct_en, data_ct_clr, watchdog_ct, watchdog_ct_en, watchdog_ct_clr, xerrcnt_ct, xerrcnt_ct_en, xerrcnt_ct_clr, crc_en;
+    logic attempt_ct, attempt_ct_en, attempt_ct_clr, preamble_ct_en, preamble_ct_clr, data_ct, data_ct_en, data_ct_clr, watchdog_ct, watchdog_ct_en, watchdog_ct_clr, xerrcnt_ct, xerrcnt_ct_en, xerrcnt_ct_clr, crc_en;
     logic [8:0] write_address_next;
-    logic [8:0] read_address_next;
+    logic [8:0] read_address_next,preamble_ct;
     logic [2:0] data_select_next;
+    logic clr_dest_addr, set_dest_addr;
     localparam DIFS = 80;
     localparam SIFS = 40;
     localparam SLOT = 8;
@@ -25,6 +26,7 @@ module xmit_controller(
             watchdog_ct <= 0;
             xerrcnt_ct <= 0;
             data_select <= 0;
+            dest_addr <= 0;
         end else begin
             state <= next;
             write_address <= write_address_next;
@@ -40,24 +42,32 @@ module xmit_controller(
             else if (data_ct_en) data_ct <= data_ct + 1;
             if (xerrcnt_ct_clr) xerrcnt_ct <= 0;
             else if (xerrcnt_ct_en) xerrcnt_ct <= xerrcnt_ct + 1;
+            if(clr_dest_addr) dest_addr <= 0;
+            else if(set_dest_addr) dest_addr <= uart_in;
         end
     end
 
     always_comb begin
         write_address_next = write_address;
         data_select_next = data_select;
-        read_address_next = read_address;
-        xrdy = 0;
+        //read_address_next = read_address;
+        xrdy = 1;
+        mx_valid = 0;
+        set_dest_addr = 0;
+        clr_dest_addr = 0;
+        write_en = 0;
+        read_en = 0;
         case (state)
             IDLE: begin
-                xrdy = 1;
-                if (xvalid || ACK_needed) begin
-                    if (cardet) next = WAIT_DIFS;
-                    else begin
-                        preamble_ct_clr = 1;
-                        next = LOAD_PREAMBLE;
-                    end
-                end else next = IDLE;
+                //xrdy = 1;
+//                if (xvalid || ACK_needed) begin
+//                    if (cardet) next = WAIT_DIFS;
+//                    else begin
+//                        preamble_ct_clr = 1;
+//                        next = LOAD_SAMPLE;
+//                    end
+//                end else next = IDLE;
+                next = LOAD_PREAMBLE;
             end
             WAIT_DIFS: begin
                 watchdog_ct_en = 1;
@@ -77,54 +87,73 @@ module xmit_controller(
             end
             LOAD_PREAMBLE: begin
                 write_en = 1;
+                //mx_valid = 1;
                 data_select_next = 3'd0;
                 write_address_next = write_address + 1;
+               //if(mx_rdy) begin
                 if (preamble_ct == PREAMBLE_LENGTH) next = LOAD_SFD;
-                else begin
-                    preamble_ct_en = 1;
-                    next = LOAD_PREAMBLE;
-                end
+                    else begin
+                        preamble_ct_en = 1;
+                        next = LOAD_PREAMBLE;
+                    end
+               //end
+               //else next = LOAD_PREAMBLE;
             end
             LOAD_SFD: begin
                 write_en = 1;
                 data_select_next = 3'd1;
+                //mx_valid = 1;
                 write_address_next = write_address + 1;
                 next = LOAD_INFO;
             end
-            LOAD_INFO: begin
-                write_en = 1;
-                write_address_next = write_address + 1;
-                data_select_next = data_select + 1;
-                if(data_select == 5) begin //or 4?
-                    if (ACK_needed) next = WAIT_SIFS;
-                    else next = LOAD_SAMPLE;
-                end
-                else next = LOAD_INFO;    
+            LOAD_INFO: begin   //load in dest addr, src addr, ftype
+                //mx_valid = 1;
+                //if(mx_rdy) begin
+                //if(enb_out_uart) begin
+                        if(xvalid)begin
+                            write_en = 1;
+                            write_address_next = write_address + 1;
+                            data_select_next = data_select + 1;
+                            if(data_select == 4) begin //or 4?
+                                if (ACK_needed) next = WAIT_SIFS;
+                                else next = LOAD_SAMPLE;
+                            end
+                            else next = LOAD_INFO; 
+                        end else next = LOAD_INFO;
+                 //end //enb out
+                 //else next = LOAD_INFO;
+                  //  end
+               // else next = LOAD_INFO;   
             end
             WAIT_SIFS: begin
                 watchdog_ct_en = 1;
                 if (watchdog_ct == SIFS * 8) next = LOAD_FCS;
                 else next = WAIT_SIFS;
             end
+            //loard uart data into bram
             LOAD_SAMPLE: begin
-                xrdy = 1;
-                data_select_next = 3'd5;
-                write_address_next = write_address + 1;
-                if (xvalid) begin
-                    data_ct_en = 1;
-                    write_en = 1;
-                    if (data_ct > 255 || xsend) begin
-                        if (ftype >= 1) next = LOAD_FCS;
-                        else next = LOAD_EOF;
+               // xrdy = 1;
+              // if(enb_out_uart) begin
+                    data_select_next = 3'd5; 
+                    if (xvalid) begin
+                        write_address_next = write_address + 1;
+                        data_ct_en = 1;
+                        write_en = 1;
+                        if(data_ct == 2) set_dest_addr = 1; //grab dest addr from uart input
+                        if (data_ct > 255 || xsend) begin
+                            if (ftype != 8'h30) next = LOAD_FCS;
+                            else next = TRANSMIT;
+                        end else next = LOAD_SAMPLE;
                     end else next = LOAD_SAMPLE;
-                end else next = LOAD_SAMPLE;
+                //end else next = LOAD_SAMPLE;
             end
             LOAD_FCS: begin
                 write_en = 1;
                 data_select_next = 3'd6;
                 write_address_next = write_address + 1;
-                next = LOAD_EOF;
+                next = TRANSMIT;
             end
+            //not NEEDED STATE, NOT USING CURRENTLY
             LOAD_EOF: begin
                 write_en  = 1;
                 data_select_next = 3'd7;
@@ -132,23 +161,28 @@ module xmit_controller(
                 next = TRANSMIT;
             end
             TRANSMIT: begin
-                read_en = 1;
-                read_address_next = read_address + 1;
-                if (mx_rdy) begin
+                xrdy = 0;
+                if(enb_out_mx) begin
+                    if (mx_rdy) begin
+                    read_en = 1;
+                    read_address_next = read_address + 1;
                     mx_valid = 1;
-                    if (write_address == read_address) begin
-                        if (ftype == 2) begin
-                            watchdog_ct_clr = 1;
-                            next = ACK_WAIT;
+                    //this part is not right 
+                        if (write_address == read_address) begin //done reading thru bram
+                            if (ftype == 8'h32) begin //need ack back
+                                watchdog_ct_clr = 1;
+                                next = ACK_WAIT;
+                            end else begin
+                                crc_en = 1;
+                                next = IDLE;
+                            end
                         end else begin
                             crc_en = 1;
-                            next = IDLE;
+                            next = TRANSMIT;
                         end
-                    end else begin
-                        crc_en = 1;
-                        next = IDLE;
-                    end
-                end else next = TRANSMIT;
+                    end else next = TRANSMIT;
+                end
+                else next = TRANSMIT;
             end
             ACK_WAIT: begin
                 watchdog_ct_en = 1;
@@ -163,7 +197,7 @@ module xmit_controller(
                             xerrcnt_ct_en = 1;
                             crc_en = 1;
                             next = IDLE;
-                        end else next = LOAD_PREAMBLE;
+                        end else next = TRANSMIT;
                     end
                 end else next = ACK_WAIT;
             end
