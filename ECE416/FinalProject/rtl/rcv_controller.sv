@@ -1,43 +1,51 @@
 module rcv_controller #(parameter PREAMBLE_LENGTH = 1)(
     input logic clk, rst, valid, cardet, rrdy,
-    input logic [7:0] MAC, data_bram,fcs,
+    input logic [7:0] MAC, data_bram,fcs, data_rcvr,
     output logic write_en, read_en, ACK_needed, ACK_received, rvalid,
     output logic [7:0] rerrcount,
-    output logic [31:0] write_address, read_address
+    output logic [8:0] write_address, read_address
 );
 
-logic empty, rerrcount_en, read_type, read_dest_addr;
+logic empty, rerrcount_en, read_type, read_dest_addr,data_ct_clr,data_ct_en,read_ct_clr,read_ct_en;
+logic [8:0] read_address_next, write_address_next,data_ct,read_ct;
+
 typedef enum logic [1:0] {IDLE, WRITE_SAMPLE, CHECK_TYPE, READ} states_t;
 states_t state, next;
 
-assign empty = (write_address == read_address);
+//assign empty = (write_address == read_address);
 
     always_ff @(posedge clk) begin
         if (rst) begin
             write_address <= 0;
             read_address <= 0;
             rerrcount <= 0;
+            data_ct <= 0;
+            read_ct = 0;
             state <= IDLE;
         end
         else
             state <= next;
-
-
-        //increment the write address when in the WRITE_SAMPLE state
-        if(write_en)
-            write_address <= write_address + 1;
-        //increment the read address in the READ state (could be an issue for type2 frame being off by 1 byte)
-        if(read_en)
-            read_address <= read_address + 1;
+            write_address <= write_address_next;
+            read_address <= read_address_next;
+            if (data_ct_clr) data_ct <= 0;
+            else if (data_ct_en) data_ct <= data_ct + 1;
+            if (read_ct_clr) read_ct <= 0;
+            else if(read_ct_en) read_ct <= read_ct + 1;
+//        //increment the write address when in the WRITE_SAMPLE state
+//        if(write_en)
+//            write_address <= write_address + 1;
+//        //increment the read address in the READ state (could be an issue for type2 frame being off by 1 byte)
+//        if(read_en)
+//            read_address <= read_address + 1;
         //increment the error counter if fcs isn't 0
-        if(rerrcount_en)
-            rerrcount <= rerrcount + 1;
+//        if(rerrcount_en)
+//            rerrcount <= rerrcount + 1;
         //change read address to the type position in the frame
-        if(read_type)
-            read_address <= PREAMBLE_LENGTH + 3;
-        //change read address to the destination address position in the frame
-        if(read_dest_addr)
-            read_address <= PREAMBLE_LENGTH + 1;
+//        if(read_type)
+//            read_address <= PREAMBLE_LENGTH + 3;
+//        //change read address to the destination address position in the frame
+//        if(read_dest_addr)
+//            read_address <= PREAMBLE_LENGTH + 1;
     end
 
 
@@ -51,27 +59,45 @@ assign empty = (write_address == read_address);
         rvalid = 0;
         read_type = 0;
         read_dest_addr = 0;
-
+        data_ct_en = 0;
+        read_ct_en = 0;
+        write_address_next = write_address;
+        read_address_next = read_address;
         case (state)
             IDLE: begin
-
-                if(valid && cardet)
-                    if(data_bram == MAC || data_bram == 8'h2a)
+                read_address_next = 0;
+                write_address_next = 0;
+                if(valid && cardet) //first valid byte will be dest addr
+                    if(data_rcvr == MAC || data_rcvr == 8'h2a) begin
+                        write_en = 1;
+                        data_ct_en = 1;
+                        write_address_next = write_address + 1;
                         next = WRITE_SAMPLE;
-                    else
+                        end
+                    else begin
+                        write_address_next = 0;
                         next = IDLE;
+                        end
                 else
                     next = IDLE;
             end
 
             WRITE_SAMPLE: begin
-
-                write_en = 1;
-
-                if(cardet && valid)
-                    next = WRITE_SAMPLE;
-                else
-                    next = CHECK_TYPE;
+                if(valid) begin
+                    //write into bram
+                     write_en = 1;
+                     data_ct_en = 1;
+                     write_address_next = write_address + 1;
+                end
+                else next = WRITE_SAMPLE;
+                
+                
+                if(!cardet) next = READ;
+                else next = WRITE_SAMPLE;
+//                if(cardet && valid)
+//                    next = WRITE_SAMPLE;
+//                else
+//                    next = CHECK_TYPE;
             end
 
             CHECK_TYPE: begin
@@ -135,12 +161,18 @@ assign empty = (write_address == read_address);
 
             READ: begin
                 rvalid = 1;
-                read_en = 1;
-                //if bram is empty and rrdy
-                if(!empty && rrdy)
-                    next = READ;
-                else
+                if(rrdy) begin
+                    read_en = 1;
+                    read_address_next = read_address + 1;
+                    read_ct_en = 1;
+                end
+                else next = READ;
+                //done reading all the data out to the uart?
+                //SET UP FRAME CHECK FOR ACK FRAME
+                if(data_ct == read_ct)
                     next = IDLE;
+                else
+                    next = READ;
             end
 
         endcase

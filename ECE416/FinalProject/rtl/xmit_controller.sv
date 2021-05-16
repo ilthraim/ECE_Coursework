@@ -4,9 +4,10 @@ module xmit_controller(
 
     typedef enum logic [4:0] {IDLE, LOAD_PREAMBLE, WAIT_DIFS, WAIT_DIFS_RANDOM, LOAD_SFD, LOAD_SFD_DUMMY, LOAD_DEST_ADDR, LOAD_SRC_ADDR,LOAD_FRAME_TYPE, LOAD_SAMPLE, WAIT_SIFS, LOAD_FCS, LOAD_EOF, TRANSMIT, ACK_WAIT} states_t;
     states_t state, next;
-    logic attempt_ct, attempt_ct_en, attempt_ct_clr, preamble_ct_en, preamble_ct_clr, data_ct, data_ct_en, data_ct_clr, watchdog_ct, watchdog_ct_en, watchdog_ct_clr, xerrcnt_ct, xerrcnt_ct_en, xerrcnt_ct_clr, crc_en;
+    logic attempt_ct,read_ct_clr, read_ct_en, attempt_ct_en, attempt_ct_clr, preamble_ct_en, preamble_ct_clr, data_ct_en, data_ct_clr, watchdog_ct, watchdog_ct_en, watchdog_ct_clr, xerrcnt_ct, xerrcnt_ct_en, xerrcnt_ct_clr, crc_en;
     logic [8:0] write_address_next;
     logic [8:0] read_address_next,preamble_ct;
+    logic [5:0] data_ct, read_ct;
     logic [2:0] data_select_next;
     logic clr_dest_addr, set_dest_addr;
     localparam DIFS = 80;
@@ -23,6 +24,7 @@ module xmit_controller(
             attempt_ct <= 0;
             preamble_ct <= 0;
             data_ct <= 0;
+            read_ct <= 0;
             watchdog_ct <= 0;
             xerrcnt_ct <= 0;
             data_select <= 0;
@@ -40,6 +42,8 @@ module xmit_controller(
             else if (attempt_ct_en) attempt_ct  <= attempt_ct + 1;
             if (data_ct_clr) data_ct <= 0;
             else if (data_ct_en) data_ct <= data_ct + 1;
+            if (read_ct_clr) read_ct <= 0;
+            else if(read_ct_en) read_ct <= read_ct + 1;
             if (xerrcnt_ct_clr) xerrcnt_ct <= 0;
             else if (xerrcnt_ct_en) xerrcnt_ct <= xerrcnt_ct + 1;
             if(clr_dest_addr) dest_addr <= 0;
@@ -58,6 +62,8 @@ module xmit_controller(
         write_en = 0;
         read_en = 0;
         preamble_ct_en = 0;
+        read_ct_en = 0;
+        data_ct_en = 0;
         case (state)
             IDLE: begin
                 //xrdy = 1;
@@ -192,11 +198,12 @@ module xmit_controller(
                 xrdy = 0;
                 if(enb_out_mx) begin
                     if (mx_rdy) begin
+                    read_ct_en = 1;
                     read_en = 1;
                     read_address_next = read_address + 1;
                     mx_valid = 1;
-                    //this part is not right 
-                        if (write_address == read_address) begin //done reading thru bram. 
+                    //this part is not right. won't work for ack as you will be cutting off last byte bc no ctrl+D to cut off. enable data_ct in preamble and sfd?
+                        if (data_ct + 4 == read_ct) begin //done reading thru bram. 
                             if (ftype == 8'h32) begin //need ack back
                                 watchdog_ct_clr = 1;
                                 next = ACK_WAIT;
