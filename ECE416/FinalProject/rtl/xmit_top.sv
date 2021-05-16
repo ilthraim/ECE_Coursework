@@ -9,7 +9,7 @@ module xmit_top #(parameter BIT_RATE = 50000, IDLE_BITS =2) (
     logic mx_valid,write_en,read_en,valid,rdy,mx_rdy,enb_out_uart,enb_out_mx;
     assign preamble = 8'b10101010;
     assign SFD = 8'hD0;
-    assign addr_xmit = ACK_needed  ? dest_addr : ack_addr; //just flipped both of these around 5/15
+    assign addr_xmit = ACK_needed  ? uart_in : ack_addr; //just flipped both of these around 5/15
     assign ftype_xmit = ACK_needed ? 8'h33 : ftype;
     assign crc = 8'h55;
     
@@ -18,9 +18,9 @@ module xmit_top #(parameter BIT_RATE = 50000, IDLE_BITS =2) (
     xmit_controller xmit_top_fsm (.clk, .rst, .xvalid, .xsend, .mx_rdy, .ACK_received, .ACK_needed, .MAC(mac), .dest_addr, .ftype(ftype_xmit), .cardet, .enb_out_uart,.enb_out_mx,
     .xrdy, .xbusy, .mx_valid, .xerrcnt, .write_en, .write_address, .read_address, .read_en, .data_select(data_sel),.uart_in);
     
-    bram_dp xmit_BRAM (.clka(clk),.wea(write_en),.addra(write_address),.dina(bram_in),.clkb(clk),.addrb(read_address),.doutb(data));
+    bram_dp xmit_BRAM (.clka(clk),.wea(write_en),.addra(write_address),.dina(bram_in),.clkb(clk),.addrb(read_address),.doutb(data),.ena(1'b1),.enb(1'b1));
 
-    manchester_xmit #(.BIT_RATE(BIT_RATE), .IDLE_BITS(IDLE_BITS)) mx_xmit (.clk, .rst, .valid, .data,.rdy(mx_rdy), .txd, .txen);
+    manchester_xmit #(.BIT_RATE(BIT_RATE), .IDLE_BITS(IDLE_BITS)) mx_xmit (.clk, .rst, .valid(mx_valid), .data,.rdy(mx_rdy), .txd, .txen);
 
     rate_enb #(9600) xmit_top_uart_rate  (.clk, .rst, .enb_out(enb_out_uart), .clr(1'b0));
     rate_enb #(BIT_RATE) xmit_top_mx_rate  (.clk, .rst, .enb_out(enb_out_mx), .clr(1'b0));

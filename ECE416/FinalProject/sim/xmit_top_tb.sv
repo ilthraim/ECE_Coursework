@@ -52,6 +52,7 @@ txd, .txen, .a_txd, .cfgclk
         mac = 8'h44;
         transmit_byte(8'h5A); //dest addr:Z
         transmit_byte(8'h44);//src addr:D
+        transmit_byte(8'h30);//src addr:D
         transmit_byte(8'h68);//data h
         transmit_byte(8'h69);//data i
         transmit_byte(8'h04); //end transmission

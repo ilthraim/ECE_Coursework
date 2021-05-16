@@ -2,7 +2,7 @@ module xmit_controller(
     input logic clk, rst, enb_out_uart, enb_out_mx, xvalid, xsend, mx_rdy, ACK_received, ACK_needed, cardet, [7:0]MAC, ftype, uart_in,
     output logic xrdy, xbusy, mx_valid, xerrcnt, write_en, read_en,[7:0] dest_addr, [2:0] data_select, [8:0] write_address, read_address);
 
-    typedef enum logic [4:0] {IDLE, LOAD_PREAMBLE, WAIT_DIFS, WAIT_DIFS_RANDOM, LOAD_SFD, LOAD_INFO, LOAD_SAMPLE, WAIT_SIFS, LOAD_FCS, LOAD_EOF, TRANSMIT, ACK_WAIT} states_t;
+    typedef enum logic [4:0] {IDLE, LOAD_PREAMBLE, WAIT_DIFS, WAIT_DIFS_RANDOM, LOAD_SFD, LOAD_SFD_DUMMY, LOAD_DEST_ADDR, LOAD_SRC_ADDR,LOAD_FRAME_TYPE, LOAD_SAMPLE, WAIT_SIFS, LOAD_FCS, LOAD_EOF, TRANSMIT, ACK_WAIT} states_t;
     states_t state, next;
     logic attempt_ct, attempt_ct_en, attempt_ct_clr, preamble_ct_en, preamble_ct_clr, data_ct, data_ct_en, data_ct_clr, watchdog_ct, watchdog_ct_en, watchdog_ct_clr, xerrcnt_ct, xerrcnt_ct_en, xerrcnt_ct_clr, crc_en;
     logic [8:0] write_address_next;
@@ -14,7 +14,7 @@ module xmit_controller(
     localparam SLOT = 8;
     localparam ACK_TIMEOUT = 256;
     localparam MAX_ATTEMPTS = 5;
-    parameter PREAMBLE_LENGTH = 2;
+    parameter PREAMBLE_LENGTH = 1;
     always_ff @(posedge clk) begin
         if (rst) begin
             state <= IDLE;
@@ -31,7 +31,7 @@ module xmit_controller(
             state <= next;
             write_address <= write_address_next;
             data_select <= data_select_next;
-            read_address_next <= read_address;
+            read_address <= read_address_next;
             if (preamble_ct_clr) preamble_ct <= 0;
             else if (preamble_ct_en) preamble_ct <= preamble_ct + 1;
             if (watchdog_ct_clr) watchdog_ct <= 0;
@@ -50,13 +50,14 @@ module xmit_controller(
     always_comb begin
         write_address_next = write_address;
         data_select_next = data_select;
-        //read_address_next = read_address;
+        read_address_next = read_address;
         xrdy = 1;
         mx_valid = 0;
         set_dest_addr = 0;
         clr_dest_addr = 0;
         write_en = 0;
         read_en = 0;
+        preamble_ct_en = 0;
         case (state)
             IDLE: begin
                 //xrdy = 1;
@@ -91,8 +92,12 @@ module xmit_controller(
                 data_select_next = 3'd0;
                 write_address_next = write_address + 1;
                //if(mx_rdy) begin
-                if (preamble_ct == PREAMBLE_LENGTH) next = LOAD_SFD;
+                if (preamble_ct == PREAMBLE_LENGTH) begin
+                    next = LOAD_SFD;
+                    data_select_next = 3'd1;
+                end
                     else begin
+                        
                         preamble_ct_en = 1;
                         next = LOAD_PREAMBLE;
                     end
@@ -104,26 +109,50 @@ module xmit_controller(
                 data_select_next = 3'd1;
                 //mx_valid = 1;
                 write_address_next = write_address + 1;
-                next = LOAD_INFO;
+                next = LOAD_DEST_ADDR;
             end
-            LOAD_INFO: begin   //load in dest addr, src addr, ftype
+
+            LOAD_DEST_ADDR: begin   //load in dest addr, src addr, ftype
                 //mx_valid = 1;
                 //if(mx_rdy) begin
                 //if(enb_out_uart) begin
+                data_select_next = 3'd5;
                         if(xvalid)begin
                             write_en = 1;
                             write_address_next = write_address + 1;
-                            data_select_next = data_select + 1;
-                            if(data_select == 4) begin //or 4?
-                                if (ACK_needed) next = WAIT_SIFS;
-                                else next = LOAD_SAMPLE;
-                            end
-                            else next = LOAD_INFO; 
-                        end else next = LOAD_INFO;
+                            set_dest_addr = 1; //grab dest addr from uart input. not needed
+//                            if(data_select == 4) begin //or 4?
+//                                if (ACK_needed) next = WAIT_SIFS;
+//                                else next = LOAD_SAMPLE;
+//                            end
+//                            else next = LOAD_DEST_ADDR;
+                            data_select_next = 3'd5;
+                            next = LOAD_SRC_ADDR;
+                        end else next = LOAD_DEST_ADDR;
                  //end //enb out
                  //else next = LOAD_INFO;
                   //  end
                // else next = LOAD_INFO;   
+            end
+            LOAD_SRC_ADDR: begin
+            data_select_next = 3'd5;
+                if(xvalid)begin
+                    data_select_next = 3'd4;
+                    write_en = 1;
+                    write_address_next = write_address + 1;
+                    next = LOAD_FRAME_TYPE;
+                end
+                else next = LOAD_SRC_ADDR;
+            end
+            LOAD_FRAME_TYPE: begin
+                data_select_next = 3'd5;
+                if(xvalid)begin
+                    data_select_next = 3'd5;
+                    write_en = 1;
+                    write_address_next = write_address + 1;
+                    next = LOAD_SAMPLE;
+                end
+                else next = LOAD_FRAME_TYPE;
             end
             WAIT_SIFS: begin
                 watchdog_ct_en = 1;
@@ -138,8 +167,7 @@ module xmit_controller(
                     if (xvalid) begin
                         write_address_next = write_address + 1;
                         data_ct_en = 1;
-                        write_en = 1;
-                        if(data_ct == 2) set_dest_addr = 1; //grab dest addr from uart input
+                        write_en = 1; 
                         if (data_ct > 255 || xsend) begin
                             if (ftype != 8'h30) next = LOAD_FCS;
                             else next = TRANSMIT;
@@ -168,7 +196,7 @@ module xmit_controller(
                     read_address_next = read_address + 1;
                     mx_valid = 1;
                     //this part is not right 
-                        if (write_address == read_address) begin //done reading thru bram
+                        if (write_address == read_address) begin //done reading thru bram. 
                             if (ftype == 8'h32) begin //need ack back
                                 watchdog_ct_clr = 1;
                                 next = ACK_WAIT;
