@@ -61,12 +61,15 @@ states_t state, next;
         read_dest_addr = 0;
         data_ct_en = 0;
         read_ct_en = 0;
+        data_ct_clr = 0;
+        read_ct_clr = 0;
         write_address_next = write_address;
         read_address_next = read_address;
         case (state)
             IDLE: begin
                 read_address_next = 0;
                 write_address_next = 0;
+                
                 if(valid && cardet) //first valid byte will be dest addr
                     if(data_rcvr == MAC || data_rcvr == 8'h2a) begin
                         write_en = 1;
@@ -169,9 +172,13 @@ states_t state, next;
                 else next = READ;
                 //done reading all the data out to the uart?
                 //SET UP FRAME CHECK FOR ACK FRAME
-                if(data_ct == read_ct)
+                if(data_ct == read_ct) begin
                     next = IDLE;
-                else
+                    data_ct_clr = 0;
+                    read_ct_clr = 0;
+                    read_address_next = 0;
+                    write_address_next = 0;
+                end else
                     next = READ;
             end
 

@@ -2,11 +2,12 @@
 
 module wimpfi_top(
     input logic clk, rst, rxd, a_rxd,[1:0]ftype_a, [7:0] mac,
-    output logic txd, txen, a_txd, cfgclk
+    output logic txd, a_txd, cfgclk, cfgdat
     );
     logic[7:0] ack_addr, xdata,dest_addr,ftype,uart_in,xerrcnt,rdata,rerrcnt;
-    logic xvalid, xrdy, rvalid, rrdy, xsnd,xsend, ACK_received,ACK_needed,xbusy,cardet,ferr,oerr;
-    assign cfgclk = 0;
+    logic xvalid, xrdy, rvalid, rrdy, xsnd,xsend, ACK_received,ACK_needed,xbusy,cardet,ferr,oerr,txen;
+    assign cfgclk = !txen;
+    assign cfgdat = 1;
     assign xsend = xvalid && (uart_in == 8'h04);
     xmit_top u_xmit_top(.clk, .rst, .xvalid, .xsend, .cardet, .ACK_received, .ACK_needed, .mac, .ack_addr, .xdata, .ftype, .uart_in,
     .txd, .txen, .xrdy, .xbusy, .xerrcnt);

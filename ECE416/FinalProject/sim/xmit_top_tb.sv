@@ -5,12 +5,9 @@ module xmit_top_tb();
     parameter BIT_RATE = 50000;
     localparam BITPD_NS = 1_000_000_000 / BAUD_RATE;
     localparam BITPD_NS_MX = 1_000_000_000 / BIT_RATE;
-    logic clk, rst, rxd, a_rxd,cfgclk,txen, txd, a_txd; logic [7:0] mac;
+    logic clk, rst, rxd, a_rxd,cfgclk,cfgdat, txd, a_txd; logic [7:0] mac;
     logic[1:0] ftype_a;
-    wimpfi_top U_DUV(
-.clk, .rst, .rxd, .a_rxd,.ftype_a, .mac, .
-txd, .txen, .a_txd, .cfgclk
-);
+    wimpfi_top U_DUV(.clk, .rst, .rxd, .a_rxd,.ftype_a, .mac, .txd, .cfgdat, .a_txd, .cfgclk);
     //uart_rxd #(.BAUD_RATE(BAUD_RATE)) U_DUV(.clk, .rst, .rxd, .rdy, .valid, .ferr, .oerr, .data);
     
     always begin
@@ -66,7 +63,7 @@ txd, .txen, .a_txd, .cfgclk
         //rdy = 0;
         @(posedge clk);
         ftype_a = 2'b00;
-        mac = 8'h5A; //our station's addr. broadcast is 2A
+        mac = 8'h5A; //our station's src addr. broadcast is 2A
         rcv_byte(8'hAA);
         rcv_byte(8'hD0);
         rcv_byte(8'h5A); //dest addr:
@@ -75,14 +72,30 @@ txd, .txen, .a_txd, .cfgclk
         rcv_byte(8'h68);//data h
         rcv_byte(8'h69);//data i
 
-        /*
+        #(BITPD_NS*20);
         transmit_byte(8'h5A); //dest addr:Z
         transmit_byte(8'h44);//src addr:D
         transmit_byte(8'h30);//src addr:D
         transmit_byte(8'h68);//data h
         transmit_byte(8'h69);//data i
         transmit_byte(8'h04); //end transmission
-        */
+        #(BITPD_NS*40);
+        transmit_byte(8'h5A); //dest addr:Z
+        transmit_byte(8'h44);//src addr:D
+        transmit_byte(8'h30);//src addr:D
+        transmit_byte(8'h7A);//data z
+        transmit_byte(8'h61);//data a
+        transmit_byte(8'h63);//data c
+        transmit_byte(8'h6B);//data k
+        transmit_byte(8'h04); //end transmission
+        #(BITPD_NS*20);
+        rcv_byte(8'hAA);
+        rcv_byte(8'hD0);
+        rcv_byte(8'h5A); //dest addr:
+        rcv_byte(8'h44);//src addr:D
+        rcv_byte(8'h30);//frame type
+        rcv_byte(8'h79);//data y
+        rcv_byte(8'h6F);//data o
         $stop;
     end
     

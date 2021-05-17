@@ -4,7 +4,8 @@ module xmit_controller(
 
     typedef enum logic [4:0] {IDLE, LOAD_PREAMBLE, WAIT_DIFS, WAIT_DIFS_RANDOM, LOAD_SFD, LOAD_SFD_DUMMY, LOAD_DEST_ADDR, LOAD_SRC_ADDR,LOAD_FRAME_TYPE, LOAD_SAMPLE, WAIT_SIFS, LOAD_FCS, LOAD_EOF, TRANSMIT, ACK_WAIT} states_t;
     states_t state, next;
-    logic attempt_ct,read_ct_clr, read_ct_en, attempt_ct_en, attempt_ct_clr, preamble_ct_en, preamble_ct_clr, data_ct_en, data_ct_clr, watchdog_ct, watchdog_ct_en, watchdog_ct_clr, xerrcnt_ct, xerrcnt_ct_en, xerrcnt_ct_clr, crc_en;
+    logic attempt_ct,read_ct_clr, read_ct_en, attempt_ct_en, attempt_ct_clr, preamble_ct_en, preamble_ct_clr, data_ct_en, data_ct_clr, watchdog_ct_en, watchdog_ct_clr, xerrcnt_ct, xerrcnt_ct_en, xerrcnt_ct_clr, crc_en;
+    logic [12:0] watchdog_ct;
     logic [8:0] write_address_next;
     logic [8:0] read_address_next,preamble_ct;
     logic [5:0] data_ct, read_ct;
@@ -64,6 +65,9 @@ module xmit_controller(
         preamble_ct_en = 0;
         read_ct_en = 0;
         data_ct_en = 0;
+        read_ct_clr = 0;
+        data_ct_clr = 0;
+        preamble_ct_clr = 0;
         case (state)
             IDLE: begin
                 //xrdy = 1;
@@ -74,6 +78,12 @@ module xmit_controller(
 //                        next = LOAD_SAMPLE;
 //                    end
 //                end else next = IDLE;
+                write_address_next = 0;
+                read_address_next = 0;
+                read_ct_clr = 1;
+                data_ct_clr = 1;
+                preamble_ct_clr = 1;
+                data_select_next = 3'd0;
                 next = LOAD_PREAMBLE;
             end
             WAIT_DIFS: begin
@@ -165,7 +175,7 @@ module xmit_controller(
                 if (watchdog_ct == SIFS * 8) next = LOAD_FCS;
                 else next = WAIT_SIFS;
             end
-            //loard uart data into bram
+            //load uart data into bram
             LOAD_SAMPLE: begin
                // xrdy = 1;
               // if(enb_out_uart) begin
