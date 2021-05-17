@@ -62,8 +62,17 @@ module xmit_top_tb();
         reset_duv;
         //rdy = 0;
         @(posedge clk);
-        ftype_a = 2'b00;
+        ftype_a = 2'b11;
         mac = 8'h5A; //our station's src addr. broadcast is 2A
+        rcv_byte(8'hAA);
+        rcv_byte(8'hD0);
+        rcv_byte(8'h5A); //dest addr:
+        rcv_byte(8'h44);//src addr:D
+        rcv_byte(8'h31);//frame type: 1
+        rcv_byte(8'h68);//data h
+        rcv_byte(8'h69);//data i
+        rcv_byte(8'h23); //crc: good for "hi" is 66
+//        #(BITPD_NS*20);
 //        rcv_byte(8'hAA);
 //        rcv_byte(8'hD0);
 //        rcv_byte(8'h5A); //dest addr:
@@ -71,8 +80,6 @@ module xmit_top_tb();
 //        rcv_byte(8'h30);//frame type
 //        rcv_byte(8'h68);//data h
 //        rcv_byte(8'h69);//data i
-
-//        #(BITPD_NS*20);
 //        transmit_byte(8'h5A); //dest addr:Z
 //        transmit_byte(8'h44);//src addr:D
 //        transmit_byte(8'h30);//src addr:D
@@ -80,22 +87,27 @@ module xmit_top_tb();
 //        transmit_byte(8'h69);//data i
 //        transmit_byte(8'h04); //end transmission
 //        #(BITPD_NS*40);
-        transmit_byte(8'h5A); //dest addr:Z
-        transmit_byte(8'h44);//src addr:D
-        transmit_byte(8'h30);//src addr:D
-        transmit_byte(8'h7A);//data z
-        transmit_byte(8'h61);//data a
-        transmit_byte(8'h63);//data c
-        transmit_byte(8'h6B);//data k
-        transmit_byte(8'h04); //end transmission
-        #(BITPD_NS*20);
-        rcv_byte(8'hAA);
-        rcv_byte(8'hD0);
-        rcv_byte(8'h5A); //dest addr:
-        rcv_byte(8'h44);//src addr:D
-        rcv_byte(8'h30);//frame type
-        rcv_byte(8'h79);//data y
-        rcv_byte(8'h6F);//data o
+//        transmit_byte(8'h5A); //dest addr:Z
+//        transmit_byte(8'h44);//src addr:D
+//        transmit_byte(8'h30);//src addr:D
+//        transmit_byte(8'h68);//data h
+//        transmit_byte(8'h69);//data i
+//        transmit_byte(8'h04); //end transmission
+//        #(BITPD_NS*40);
+//        transmit_byte(8'h5A); //dest addr:Z
+//        transmit_byte(8'h44);//src addr:D
+//        transmit_byte(8'h31);//src addr:D
+//        transmit_byte(8'h68);//data h
+//        transmit_byte(8'h69);//data i
+//        transmit_byte(8'h04); //end transmission
+      //  #(BITPD_NS*20);
+//        rcv_byte(8'hAA);
+//        rcv_byte(8'hD0);
+//        rcv_byte(8'h5A); //dest addr:
+//        rcv_byte(8'h44);//src addr:D
+//        rcv_byte(8'h30);//frame type
+//        rcv_byte(8'h79);//data y
+//        rcv_byte(8'h6F);//data o
         $stop;
     end
     

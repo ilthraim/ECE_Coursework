@@ -13,7 +13,7 @@ module wimpfi_top(
     .txd, .txen, .xrdy, .xbusy, .xerrcnt);
     
     rcvr_top u_rcvr_top(.clk, .rst, .rxd, .rrdy, .MAC(mac),
-    .cardet, .ACK_needed, .ACK_received, .rvalid, .rdata, .rerrcnt);
+    .cardet, .ACK_needed, .ACK_received, .rvalid, .rcvr_data(rdata), .rerrcnt);
     
     uart_xmit u_uart_xmit(.clk100MHz(clk), .rst, .valid(rvalid), .data(rdata),
     .rdy(rrdy), .txd(a_txd));

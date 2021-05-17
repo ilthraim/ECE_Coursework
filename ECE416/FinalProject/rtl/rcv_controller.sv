@@ -1,15 +1,16 @@
 module rcv_controller #(parameter PREAMBLE_LENGTH = 1)(
     input logic clk, rst, valid, cardet, rrdy,
     input logic [7:0] MAC, data_bram,fcs, data_rcvr,
-    output logic write_en, read_en, ACK_needed, ACK_received, rvalid,
+    output logic write_en, read_en, ACK_needed, ACK_received, rvalid, crc_enb, crc_clr,crc_rcv,
     output logic [7:0] rerrcount,
     output logic [8:0] write_address, read_address
 );
 
 logic empty, rerrcount_en, read_type, read_dest_addr,data_ct_clr,data_ct_en,read_ct_clr,read_ct_en;
 logic [8:0] read_address_next, write_address_next,data_ct,read_ct;
+logic [7:0] frame_type;
 
-typedef enum logic [1:0] {IDLE, WRITE_SAMPLE, CHECK_TYPE, READ} states_t;
+typedef enum logic [2:0] {IDLE, WRITE_SAMPLE, CHECK_TYPE, READ,READ_CRC} states_t;
 states_t state, next;
 
 //assign empty = (write_address == read_address);
@@ -20,7 +21,7 @@ states_t state, next;
             read_address <= 0;
             rerrcount <= 0;
             data_ct <= 0;
-            read_ct = 0;
+            read_ct <= 0;
             state <= IDLE;
         end
         else
@@ -51,6 +52,7 @@ states_t state, next;
 
     always_comb begin
         //default values
+        next = IDLE;
         read_en = 0;
         write_en = 0;
         rerrcount_en = 0;
@@ -63,13 +65,16 @@ states_t state, next;
         read_ct_en = 0;
         data_ct_clr = 0;
         read_ct_clr = 0;
+        crc_enb = 0;
+        crc_clr = 0;
+        crc_rcv = 0;
         write_address_next = write_address;
         read_address_next = read_address;
         case (state)
             IDLE: begin
                 read_address_next = 0;
                 write_address_next = 0;
-                
+                crc_clr = 1;
                 if(valid && cardet) //first valid byte will be dest addr
                     if(data_rcvr == MAC || data_rcvr == 8'h2a) begin
                         write_en = 1;
@@ -90,6 +95,7 @@ states_t state, next;
                     //write into bram
                      write_en = 1;
                      data_ct_en = 1;
+                     if(data_ct == 2) frame_type = data_rcvr;
                      write_address_next = write_address + 1;
                 end
                 else next = WRITE_SAMPLE;
@@ -166,6 +172,7 @@ states_t state, next;
                 rvalid = 1;
                 if(rrdy) begin
                     read_en = 1;
+                    crc_enb = 1;
                     read_address_next = read_address + 1;
                     read_ct_en = 1;
                 end
@@ -173,7 +180,9 @@ states_t state, next;
                 //done reading all the data out to the uart?
                 //SET UP FRAME CHECK FOR ACK FRAME
                 if(data_ct == read_ct) begin
-                    next = IDLE;
+                    rvalid = 0;
+                    if(frame_type != 8'h30) next = READ_CRC;
+                    else next = IDLE;
                     data_ct_clr = 0;
                     read_ct_clr = 0;
                     read_address_next = 0;
@@ -181,7 +190,17 @@ states_t state, next;
                 end else
                     next = READ;
             end
+            
+            READ_CRC: begin
+                rvalid = 1;
+                if(rrdy) begin
 
+                    crc_rcv = 1;
+                    next = IDLE;
+                end 
+                else next = READ_CRC;  
+            end
+            
         endcase
     end
 
