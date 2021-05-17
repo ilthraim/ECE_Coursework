@@ -64,22 +64,22 @@ module xmit_top_tb();
         @(posedge clk);
         ftype_a = 2'b00;
         mac = 8'h5A; //our station's src addr. broadcast is 2A
-        rcv_byte(8'hAA);
-        rcv_byte(8'hD0);
-        rcv_byte(8'h5A); //dest addr:
-        rcv_byte(8'h44);//src addr:D
-        rcv_byte(8'h30);//frame type
-        rcv_byte(8'h68);//data h
-        rcv_byte(8'h69);//data i
+//        rcv_byte(8'hAA);
+//        rcv_byte(8'hD0);
+//        rcv_byte(8'h5A); //dest addr:
+//        rcv_byte(8'h44);//src addr:D
+//        rcv_byte(8'h30);//frame type
+//        rcv_byte(8'h68);//data h
+//        rcv_byte(8'h69);//data i
 
-        #(BITPD_NS*20);
-        transmit_byte(8'h5A); //dest addr:Z
-        transmit_byte(8'h44);//src addr:D
-        transmit_byte(8'h30);//src addr:D
-        transmit_byte(8'h68);//data h
-        transmit_byte(8'h69);//data i
-        transmit_byte(8'h04); //end transmission
-        #(BITPD_NS*40);
+//        #(BITPD_NS*20);
+//        transmit_byte(8'h5A); //dest addr:Z
+//        transmit_byte(8'h44);//src addr:D
+//        transmit_byte(8'h30);//src addr:D
+//        transmit_byte(8'h68);//data h
+//        transmit_byte(8'h69);//data i
+//        transmit_byte(8'h04); //end transmission
+//        #(BITPD_NS*40);
         transmit_byte(8'h5A); //dest addr:Z
         transmit_byte(8'h44);//src addr:D
         transmit_byte(8'h30);//src addr:D
