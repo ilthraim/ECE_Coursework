@@ -11,8 +11,8 @@ assign rcvr_data = crc_rcv ? (crc_out != 0 ? "!" : 8'h2B) : rdata; //2B = "+"
 rcv_controller rcvr_top_fsm (.clk, .rst, .valid, .cardet, .rrdy, .MAC, .data_rcvr(data), .crc_enb, .crc_clr, .crc_rcv, .data_bram(rdata),.fcs(crc),.write_en, .read_en, .ACK_needed, .ACK_received, .rvalid,
 .rerrcount(rerrcnt),.write_address, .read_address);
 
-//bram_dp rcvr_BRAM (.clka(clk),.wea(write_en),.addra(write_address),.dina(data),.clkb(clk),.addrb(read_address),.doutb(rdata),.ena(1'b1),.enb(1'b1));
-ip_dumb rcvr_BRAM (.clka(clk),.wea(write_en),.addra(write_address),.dina(data),.clkb(clk),.addrb(read_address),.doutb(rdata),.ena(1'b1),.enb(1'b1));
+bram_dp rcvr_BRAM (.clka(clk),.wea(write_en),.addra(write_address),.dina(data),.clkb(clk),.addrb(read_address),.doutb(rdata),.ena(1'b1),.enb(1'b1));
+//ip_dumb rcvr_BRAM (.clka(clk),.wea(write_en),.addra(write_address),.dina(data),.clkb(clk),.addrb(read_address),.doutb(rdata),.ena(1'b1),.enb(1'b1));
 
 mx_rcvr #(.BIT_RATE(BIT_RATE)) mx_receiver(.clk, .rst, .rxd,.valid, .cardet, .error, .data);
 crc_lookup U_CRC (.clk, .rst, .clr(crc_clr), .enb(crc_enb), .data(rdata), .crc(crc_out));

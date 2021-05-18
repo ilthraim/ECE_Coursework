@@ -101,6 +101,7 @@ module xmit_controller(
 //                end else next = IDLE;
                 write_address_next = 0;
                 read_address_next = 0;
+                watchdog_ct_clr = 1;
                 read_ct_clr = 1;
                 data_ct_clr = 1;
                 preamble_ct_clr = 1;
@@ -118,6 +119,7 @@ module xmit_controller(
                         end else next = TRANSMIT;
                     end else next = WAIT_DIFS;
                 end else next = WAIT_DIFS;
+                if(ACK_received)next = IDLE;
             end
             WAIT_DIFS_RANDOM: begin
                 if(enb_out_8) begin
@@ -128,6 +130,7 @@ module xmit_controller(
                         watchdog_ct_clr = 1;
                     end else next = WAIT_DIFS_RANDOM;
                 end else next = WAIT_DIFS_RANDOM;
+                if(ACK_received)next = IDLE;
             end
             LOAD_PREAMBLE: begin
                 crc_clr = 1;
@@ -288,7 +291,13 @@ module xmit_controller(
                             if (attempt_ct == 5) begin
                                 xerrcnt_ct_en = 1;
                                 next = IDLE;
-                            end else next = TRANSMIT;
+                            end else begin
+                            next = TRANSMIT;
+                            crc_clr = 1;
+                            read_address_next = 0;
+                            watchdog_ct_clr = 1;
+                            read_ct_clr = 1;
+                            end
                         end
                     end else next = ACK_WAIT;
                 end else next = ACK_WAIT;
