@@ -1,9 +1,9 @@
 module rcv_controller #(parameter PREAMBLE_LENGTH = 1)(
-    input logic clk, rst, valid, cardet, rrdy,
+    input logic clk, rst, valid, cardet, rrdy, ack_sent,
     input logic [7:0] MAC, data_bram,fcs, data_rcvr,
     output logic write_en, read_en, ACK_needed, ACK_received, rvalid, crc_enb, crc_clr,crc_rcv,
     output logic [7:0] rerrcount,
-    output logic [8:0] write_address, read_address
+    output logic [8:0] write_address, read_address,ack_frame_addr
 );
 
 logic empty, rerrcount_en, read_type, read_dest_addr,data_ct_clr,data_ct_en,read_ct_clr,read_ct_en,ack_need_set,ack_need_clr,ack_rcv_set,ack_rcv_clr;
@@ -83,8 +83,12 @@ states_t state, next;
                 read_address_next = 0;
                 write_address_next = 0;
                 crc_clr = 1;
+                if(ack_sent) ack_need_clr = 1;
+                ack_need_clr = 1;
+                //ack_rcv_clr = 1;
                 if(valid && cardet) //first valid byte will be dest addr
                     if(data_rcvr == MAC || data_rcvr == 8'h2a) begin
+                       
                         write_en = 1;
                         data_ct_en = 1;
                         write_address_next = write_address + 1;
@@ -100,6 +104,7 @@ states_t state, next;
 
             WRITE_SAMPLE: begin
                 if(valid) begin
+                    if(data_ct == 1) ack_frame_addr = data_rcvr;
                     //write into bram
                      write_en = 1;
                      data_ct_en = 1;
@@ -126,65 +131,66 @@ states_t state, next;
 
             CHECK_TYPE: begin
 
-                read_type = 1;
-                read_en = 1;
+//                read_type = 1;
+//                read_en = 1;
 
-                //read type
-                case (data_bram)
-                    //type 0
-                    8'd0: begin
-                        next = READ;
-                    end
-                    //type 1
-                    8'd1: begin
-                        if(fcs == 0)
-                            next = READ;
-                        else begin
-                            rerrcount_en = 1;
-                            next = IDLE;
-                        end
+//                //read type
+//                case (data_bram)
+//                    //type 0
+//                    8'd0: begin
+//                        next = READ;
+//                    end
+//                    //type 1
+//                    8'd1: begin
+//                        if(fcs == 0)
+//                            next = READ;
+//                        else begin
+//                            rerrcount_en = 1;
+//                            next = IDLE;
+//                        end
 
-                    end
-                    //type 2
-                    8'd2: begin
-                        read_dest_addr = 1;
-                        read_en = 1;
+//                    end
+//                    //type 2
+//                    8'd2: begin
+//                        read_dest_addr = 1;
+//                        read_en = 1;
 
-                        if(data_bram == 8'h2a);
-                        //do nothing
-                        else
-                            ACK_needed = 1;
+//                        if(data_bram == 8'h2a);
+//                        //do nothing
+//                        else
+//                            ACK_needed = 1;
 
-                        //regardless of previous if statement, check fcs
-                        if(fcs == 0)
-                            next = READ;
-                        else begin
-                            rerrcount_en = 1;
-                            next = IDLE;
-                        end
+//                        //regardless of previous if statement, check fcs
+//                        if(fcs == 0)
+//                            next = READ;
+//                        else begin
+//                            rerrcount_en = 1;
+//                            next = IDLE;
+//                        end
 
-                    end
-                    //type 3
-                    8'd3: begin
-                        if(fcs == 0)
-                            ACK_received = 1;
-                        else
-                            rerrcount_en = 1;
+//                    end
+//                    //type 3
+//                    8'd3: begin
+//                        if(fcs == 0)
+//                            ACK_received = 1;
+//                        else
+//                            rerrcount_en = 1;
 
-                        next = IDLE;
+//                        next = IDLE;
 
-                    end
+//                    end
 
-                    default:begin
-                        next = IDLE;
-                    end
+//                    default:begin
+//                        next = IDLE;
+//                    end
 
-                endcase
+//                endcase
 
             end
 
             READ: begin
                 rvalid = 1;
+                if(ack_sent) ack_need_clr = 1;
                 if(rrdy) begin
                     read_en = 1;
                     crc_enb = 1;
