@@ -60,7 +60,7 @@ module xmit_top_tb();
     initial begin
         $timeformat(-9, 0, "ns", 6);
         reset_duv;
-        backoff = 1;
+        backoff = 0;
         //rdy = 0;
         @(posedge clk);
         ftype_a = 2'b11;
@@ -83,7 +83,7 @@ module xmit_top_tb();
 //        rcv_byte(8'h69);//data i
         transmit_byte(8'h5A); //dest addr:Z
         transmit_byte(8'h44);//src addr:D
-        transmit_byte(8'h30);//type 0
+        transmit_byte(8'h32);//type 0
         transmit_byte(8'h68);//data h
         transmit_byte(8'h69);//data i
         transmit_byte(8'h04); //end transmission

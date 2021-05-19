@@ -23,6 +23,8 @@ states_t state, next;
             data_ct <= 0;
             read_ct <= 0;
             state <= IDLE;
+            ACK_needed <= 0;
+            ACK_received <= 0;
         end
         else
             state <= next;
@@ -85,7 +87,7 @@ states_t state, next;
                 write_address_next = 0;
                 crc_clr = 1;
                 if(ack_sent) ack_need_clr = 1;
-                ack_need_clr = 1;
+                //ack_need_clr = 1;
                 //ack_rcv_clr = 1;
                 if(valid && cardet) //first valid byte will be dest addr
                     if(data_rcvr == MAC || data_rcvr == 8'h2a) begin

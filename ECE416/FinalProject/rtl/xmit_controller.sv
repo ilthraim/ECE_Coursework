@@ -1,14 +1,14 @@
 module xmit_controller(
     input logic clk, enb_out_8, rst, enb_out_uart, enb_out_mx, xvalid, xsend, mx_rdy, ACK_received, ACK_needed, cardet, [7:0]MAC, ftype, uart_in,ack_frame_addr,
-    output logic crc_en, crc_clr, crc_xmit, xrdy, ack_sent, xbusy, mx_valid, xerrcnt, write_en, read_en,[7:0] dest_addr, [2:0] data_select, [8:0] write_address, read_address);
+    output logic crc_en, crc_clr, crc_xmit, xrdy, ack_sent, xbusy, mx_valid, xerrcnt, write_en, read_en,[7:0] dest_addr, frame_type, [2:0] data_select, [8:0] write_address, read_address);
 
-    typedef enum logic [4:0] {IDLE, LOAD_PREAMBLE, WAIT_DIFS, WAIT_DIFS_RANDOM, LOAD_SFD, LOAD_SFD_DUMMY, LOAD_DEST_ADDR, LOAD_SRC_ADDR,LOAD_FRAME_TYPE, LOAD_SAMPLE, WAIT_SIFS, LOAD_FCS, LOAD_EOF, TRANSMIT, TRANSMIT_CRC, ACK_WAIT} states_t;
+    typedef enum logic [4:0] {IDLE, LOAD_DEST_ACK, LOAD_PREAMBLE, WAIT_DIFS, WAIT_DIFS_RANDOM, LOAD_SFD, LOAD_SFD_DUMMY, LOAD_DEST_ADDR, LOAD_SRC_ADDR,LOAD_FRAME_TYPE, LOAD_SAMPLE, WAIT_SIFS, LOAD_FCS, LOAD_EOF, TRANSMIT, TRANSMIT_CRC, ACK_WAIT,TRANSMIT_ACK,TRANSMIT_CRC_ACK} states_t;
     states_t state, next;
     logic ftype_set,ftype_clr,read_ct_clr, read_ct_en, attempt_ct_en, attempt_ct_clr, preamble_ct_en, preamble_ct_clr, data_ct_en, data_ct_clr, watchdog_ct_en, watchdog_ct_clr, xerrcnt_ct, xerrcnt_ct_en, xerrcnt_ct_clr;
     logic [31:0] watchdog_ct;
     logic [8:0] write_address_next;
     logic [8:0] read_address_next,preamble_ct;
-    logic [7:0] frame_type;
+    //logic [7:0] frame_type;
     logic [5:0] data_ct, read_ct, rand_wait;
     logic [2:0] data_select_next,attempt_ct;
     logic clr_dest_addr, set_dest_addr;
@@ -95,6 +95,7 @@ module xmit_controller(
         set_rand_wait = 0;
         attempt_ct_en = 0;
         ack_sent = 0;
+        //frame_type_fix = 8'h30;
         case (state)
             IDLE: begin
                 //xrdy = 1;
@@ -122,7 +123,10 @@ module xmit_controller(
                             watchdog_ct_clr = 1;
                             set_rand_wait = 1;
                             next = WAIT_DIFS_RANDOM;
-                        end else next = TRANSMIT;
+                        end else begin
+                            if(ACK_needed)next = TRANSMIT_ACK;
+                            else next = TRANSMIT;
+                        end
                         //if(ACK_received)next = IDLE;
                     end else next = WAIT_DIFS;
                 end else next = WAIT_DIFS;
@@ -133,7 +137,10 @@ module xmit_controller(
                     watchdog_ct_en = 1;
                     if (watchdog_ct >= (32'd2000)) begin
                         if (cardet) next = WAIT_DIFS_RANDOM; //should rand_wait be re-randomzied here?
-                        else next = TRANSMIT;
+                        else begin
+                            if(ACK_needed)next = TRANSMIT_ACK;
+                            else next = TRANSMIT;
+                        end
                         watchdog_ct_clr = 1;
                         //if(ACK_received)next = IDLE;
                     end else next = WAIT_DIFS_RANDOM;
@@ -161,7 +168,7 @@ module xmit_controller(
             end
             LOAD_SFD: begin
                 write_en = 1;
-                data_select_next = 3'd1;
+                data_select_next = 3'd2; //was a 1 5/19
                 //mx_valid = 1;
                 write_address_next = write_address + 1;
                 if(ACK_needed) data_select_next = 3'd2;
@@ -187,18 +194,30 @@ module xmit_controller(
                             next = LOAD_SRC_ADDR;
                         end else next = LOAD_DEST_ADDR;
                         
-                        if(ACK_needed && !ack_sent)begin
-                        write_en = 1;
-                        write_address_next = write_address + 1;
-                        data_select_next = 3'd2;
-                        next = LOAD_SRC_ADDR;
+//                        if(ACK_needed && !ack_sent)begin
+//                        write_en = 1;
+//                        write_address_next = write_address + 1;
+//                        data_select_next = 3'd3;
+//                        next = LOAD_SRC_ADDR;
                         
+ //                       end
+                        if(ACK_needed && !ack_sent)begin
+                            data_select_next = 3'd2;
+                            next = LOAD_DEST_ACK;
                         end
                  //end //enb out
                  //else next = LOAD_INFO;
                   //  end
                // else next = LOAD_INFO;   
             end
+            
+            LOAD_DEST_ACK: begin                        
+                write_en = 1;
+                write_address_next = write_address + 1;
+                data_select_next = 3'd3;
+                next = LOAD_SRC_ADDR;
+            end
+            
             LOAD_SRC_ADDR: begin
             if(!ACK_needed)data_select_next = 3'd5;
             else data_select_next = 3'd3;
@@ -210,7 +229,7 @@ module xmit_controller(
                 end
                 else next = LOAD_SRC_ADDR;
                 if(ACK_needed)begin
-                    data_select_next = 3'd3; //load in MAC
+                    data_select_next = 3'd4; //load in MAC
                     write_en = 1;
                     write_address_next = write_address + 1;
                     next = LOAD_FRAME_TYPE;
@@ -220,6 +239,7 @@ module xmit_controller(
                 data_select_next = 3'd5;
                 if(xvalid)begin
                     ftype_set = 1;
+                   // frame_type_fix = uart_in;
                     data_select_next = 3'd5;
                     write_en = 1;
                     write_address_next = write_address + 1;
@@ -227,11 +247,11 @@ module xmit_controller(
                 end
                 else next = LOAD_FRAME_TYPE;
                 if(ACK_needed)begin
-                    data_select_next = 3'd4; //load in ftype
+                    data_select_next = 3'd4; //load in ftype //do you need this line? 5/19
                     ftype_set = 1;
                     write_en = 1;
                     write_address_next = write_address + 1;
-                    next = TRANSMIT;
+                    next = TRANSMIT_ACK;
                 end
             end
             WAIT_SIFS: begin
@@ -272,6 +292,29 @@ module xmit_controller(
                 write_address_next = write_address + 1;
                 next = TRANSMIT;
             end
+            TRANSMIT_ACK: begin
+                xrdy = 0;
+                if(cardet) next = WAIT_DIFS;
+                else begin
+                    next = TRANSMIT_ACK;
+                    if(mx_rdy) begin
+                        read_ct_en = 1;
+                            read_en = 1;
+                            read_address_next = read_address + 1;
+                            mx_valid = 1;
+                            if (read_ct >= 3) begin
+                                crc_en = 1;
+                            end
+                             if (data_ct + 5 == read_ct) begin //done reading thru bram. 
+                                watchdog_ct_clr = 1;
+                                ack_sent = 1;
+                                read_ct_clr = 1;
+                                next = TRANSMIT_CRC_ACK;
+                            end else next = TRANSMIT_ACK;
+                    end else next = TRANSMIT_ACK;
+                end
+            
+            end
             TRANSMIT: begin
                 xrdy = 0;
                 if(cardet) next = WAIT_DIFS;
@@ -287,22 +330,13 @@ module xmit_controller(
                                 crc_en = 1;
                             end
                             
-                            if(ACK_needed) begin
-                                 if (data_ct + 6 == read_ct) begin //done reading thru bram. 
-                                    if (frame_type != 8'h30) begin //need crc
-                                        watchdog_ct_clr = 1;
-                                        ack_sent = 1;
-                                        next = TRANSMIT_CRC;
-                                    end else begin
-                                        next = IDLE;
-                                    end
-                                end else next = TRANSMIT;
-                            end
-                            else next = TRANSMIT;
+                            
+                            //else next = TRANSMIT;
                         //this part is not right. won't work for ack as you will be cutting off last byte bc no ctrl+D to cut off. enable data_ct in preamble and sfd?
-                            if (data_ct + 4 == read_ct && !ACK_needed) begin //done reading thru bram. 
+                            if (data_ct + 4 <= read_ct) begin //done reading thru bram. 
                                 if (frame_type != 8'h30) begin //need crc
                                     watchdog_ct_clr = 1;
+                                    read_ct_clr = 1;
                                     next = TRANSMIT_CRC;
                                 end else next = IDLE;
                             end else next = TRANSMIT;
@@ -311,17 +345,38 @@ module xmit_controller(
                         //end else next = TRANSMIT; 
                        // end else next = TRANSMIT; //mx rdy
                     end else next = TRANSMIT; //for cardet
-                end
+                end 
             end
             TRANSMIT_CRC: begin
-                if (enb_out_mx) begin
-                    if (mx_rdy) begin
-                        crc_xmit = 1;
-                        mx_valid = 1;
-                        if(frame_type ==8'h32) next = ACK_WAIT; //need ack frame back
-                        else next = IDLE;
+                crc_xmit = 1;  
+                if(read_ct <= 1) begin 
+                    if (enb_out_mx) begin
+                        if (mx_rdy) begin
+                            mx_valid = 1;
+                            read_ct_en = 1;
+                        end else next = TRANSMIT_CRC; //was transmit crc 5/19
                     end else next = TRANSMIT_CRC;
-                end else next = TRANSMIT_CRC;
+                end else begin
+                    if(frame_type ==8'h32) next = ACK_WAIT; //need ack frame back
+                     else next = IDLE;
+                    //next = TRANSMIT_CRC; 
+                end
+            end
+            TRANSMIT_CRC_ACK: begin
+                crc_xmit = 1;  
+                mx_valid = 1;
+                if(read_ct == 0) begin 
+
+                        if (mx_rdy) begin
+                            mx_valid = 1;
+                            read_ct_en = 1;
+                        end else next = TRANSMIT_CRC_ACK; //was transmit crc 5/19
+
+                end else begin
+                    if(frame_type ==8'h32) next = ACK_WAIT; //need ack frame back
+                     else next = IDLE;
+                    //next = TRANSMIT_CRC; 
+                end
             end
             ACK_WAIT: begin
                 if(enb_out_8) begin
