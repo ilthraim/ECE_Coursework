@@ -69,6 +69,7 @@ module xmit_controller(
     end
 
     always_comb begin
+        next = IDLE;
         write_address_next = write_address;
         data_select_next = data_select;
         read_address_next = read_address;
@@ -116,26 +117,28 @@ module xmit_controller(
             WAIT_DIFS: begin
                 if(enb_out_8) begin
                     watchdog_ct_en = 1;
-                    if (watchdog_ct == DIFS * 8) begin
+                    if (watchdog_ct >= 32'd640) begin
                         if (cardet) begin
                             watchdog_ct_clr = 1;
                             set_rand_wait = 1;
                             next = WAIT_DIFS_RANDOM;
                         end else next = TRANSMIT;
+                        //if(ACK_received)next = IDLE;
                     end else next = WAIT_DIFS;
                 end else next = WAIT_DIFS;
-                if(ACK_received)next = IDLE;
+                
             end
             WAIT_DIFS_RANDOM: begin
                 if(enb_out_8) begin
                     watchdog_ct_en = 1;
-                    if (watchdog_ct == (((DIFS + SLOT) * rand_wait)) * 8) begin
+                    if (watchdog_ct >= (32'd2000)) begin
                         if (cardet) next = WAIT_DIFS_RANDOM; //should rand_wait be re-randomzied here?
                         else next = TRANSMIT;
                         watchdog_ct_clr = 1;
+                        //if(ACK_received)next = IDLE;
                     end else next = WAIT_DIFS_RANDOM;
                 end else next = WAIT_DIFS_RANDOM;
-                if(ACK_received)next = IDLE;
+                
             end
             LOAD_PREAMBLE: begin
                 crc_clr = 1;
@@ -273,6 +276,7 @@ module xmit_controller(
                 xrdy = 0;
                 if(cardet) next = WAIT_DIFS;
                 else begin
+                    next = TRANSMIT;
                     if(enb_out_mx) begin
                         if (mx_rdy) begin
                             read_ct_en = 1;
@@ -282,18 +286,7 @@ module xmit_controller(
                             if (read_ct >= 3) begin
                                 crc_en = 1;
                             end
-                        //this part is not right. won't work for ack as you will be cutting off last byte bc no ctrl+D to cut off. enable data_ct in preamble and sfd?
-                            if (data_ct + 4 == read_ct && !ACK_needed) begin //done reading thru bram. 
-                                if (frame_type != 8'h30) begin //need crc
-                                    watchdog_ct_clr = 1;
-                                    next = TRANSMIT_CRC;
-                                end else begin
-                                    next = IDLE;
-                                end
-                                end else begin
-                                    next = TRANSMIT;
-                                end
-                            end
+                            
                             if(ACK_needed) begin
                                  if (data_ct + 6 == read_ct) begin //done reading thru bram. 
                                     if (frame_type != 8'h30) begin //need crc
@@ -305,10 +298,20 @@ module xmit_controller(
                                     end
                                 end else next = TRANSMIT;
                             end
+                            else next = TRANSMIT;
+                        //this part is not right. won't work for ack as you will be cutting off last byte bc no ctrl+D to cut off. enable data_ct in preamble and sfd?
+                            if (data_ct + 4 == read_ct && !ACK_needed) begin //done reading thru bram. 
+                                if (frame_type != 8'h30) begin //need crc
+                                    watchdog_ct_clr = 1;
+                                    next = TRANSMIT_CRC;
+                                end else next = IDLE;
+                            end else next = TRANSMIT;
+                        end
+                            
                         //end else next = TRANSMIT; 
-                    end //mx rdy
-                    else next = TRANSMIT;
-                    end //for cardet
+                       // end else next = TRANSMIT; //mx rdy
+                    end else next = TRANSMIT; //for cardet
+                end
             end
             TRANSMIT_CRC: begin
                 if (enb_out_mx) begin

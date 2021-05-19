@@ -5,9 +5,9 @@ module xmit_top_tb();
     parameter BIT_RATE = 50000;
     localparam BITPD_NS = 1_000_000_000 / BAUD_RATE;
     localparam BITPD_NS_MX = 1_000_000_000 / BIT_RATE;
-    logic clk, rst, rxd, a_rxd,cfgclk,cfgdat, txd, a_txd; logic [7:0] mac;
+    logic clk, rst, rxd, a_rxd,cfgclk,cfgdat, txd, a_txd,rcv_led,backoff; logic [7:0] mac;
     logic[1:0] ftype_a;
-    wimpfi_top U_DUV(.clk, .rst, .rxd, .a_rxd,.ftype_a, .mac, .txd, .cfgdat, .a_txd, .cfgclk);
+    wimpfi_top U_DUV(.clk, .rst, .rxd, .a_rxd,.ftype_a, .mac, .txd, .cfgdat, .a_txd, .cfgclk, .rcv_led,.backoff);
     //uart_rxd #(.BAUD_RATE(BAUD_RATE)) U_DUV(.clk, .rst, .rxd, .rdy, .valid, .ferr, .oerr, .data);
     
     always begin
@@ -60,18 +60,19 @@ module xmit_top_tb();
     initial begin
         $timeformat(-9, 0, "ns", 6);
         reset_duv;
+        backoff = 1;
         //rdy = 0;
         @(posedge clk);
         ftype_a = 2'b11;
         mac = 8'h5A; //our station's src addr. broadcast is 2A
-        rcv_byte(8'hAA);
-        rcv_byte(8'hD0);
-        rcv_byte(8'h5A); //dest addr:
-        rcv_byte(8'h4F);//src addr:D
-        rcv_byte(8'h32);//frame type: 1
-        rcv_byte(8'h68);//data h
-        rcv_byte(8'h69);//data i
-        rcv_byte(8'h66); //crc: good for "hi" is 66
+//        rcv_byte(8'hAA);
+//        rcv_byte(8'hD0);
+//        rcv_byte(8'h5A); //dest addr:
+//        rcv_byte(8'h4F);//src addr:D
+//        rcv_byte(8'h32);//frame type: 1
+//        rcv_byte(8'h68);//data h
+//        rcv_byte(8'h69);//data i
+//        rcv_byte(8'h66); //crc: good for "hi" is 66
 //        #(BITPD_NS*20);
 //        rcv_byte(8'hAA);
 //        rcv_byte(8'hD0);
@@ -80,13 +81,15 @@ module xmit_top_tb();
 //        rcv_byte(8'h30);//frame type
 //        rcv_byte(8'h68);//data h
 //        rcv_byte(8'h69);//data i
-//        transmit_byte(8'h5A); //dest addr:Z
-//        transmit_byte(8'h44);//src addr:D
-//        transmit_byte(8'h32);//type 0
-//        transmit_byte(8'h68);//data h
-//        transmit_byte(8'h69);//data i
-//        transmit_byte(8'h04); //end transmission
-//        #(BITPD_NS*20); //don't get ack back in time
+        transmit_byte(8'h5A); //dest addr:Z
+        transmit_byte(8'h44);//src addr:D
+        transmit_byte(8'h30);//type 0
+        transmit_byte(8'h68);//data h
+        transmit_byte(8'h69);//data i
+        transmit_byte(8'h04); //end transmission
+        #(BITPD_NS*80); //don't get ack back in time
+        backoff = 0;
+        #(BITPD_NS*10);
 //        rcv_byte(8'hAA);
 //        rcv_byte(8'hD0);
 //        rcv_byte(8'h5A); //dest addr:

@@ -1,7 +1,7 @@
 module rcv_controller #(parameter PREAMBLE_LENGTH = 1)(
     input logic clk, rst, valid, cardet, rrdy, ack_sent,
     input logic [7:0] MAC, data_bram,fcs, data_rcvr,
-    output logic write_en, read_en, ACK_needed, ACK_received, rvalid, crc_enb, crc_clr,crc_rcv,
+    output logic write_en, read_en, ACK_needed, ACK_received, rvalid, crc_enb, crc_clr,crc_rcv,valid_cardet,
     output logic [7:0] rerrcount,
     output logic [8:0] write_address, read_address,ack_frame_addr
 );
@@ -64,6 +64,7 @@ states_t state, next;
         read_en = 0;
         write_en = 0;
         rerrcount_en = 0;
+        valid_cardet = 0;
 //        ACK_needed = 0;
 //        ACK_received = 0;
         rvalid = 0;
@@ -88,7 +89,7 @@ states_t state, next;
                 //ack_rcv_clr = 1;
                 if(valid && cardet) //first valid byte will be dest addr
                     if(data_rcvr == MAC || data_rcvr == 8'h2a) begin
-                       
+                        valid_cardet = 1;
                         write_en = 1;
                         data_ct_en = 1;
                         write_address_next = write_address + 1;
@@ -103,26 +104,22 @@ states_t state, next;
             end
 
             WRITE_SAMPLE: begin
+                valid_cardet = 1;
                 if(valid) begin
                     if(data_ct == 1) ack_frame_addr = data_rcvr;
                     //write into bram
-                     write_en = 1;
-                     data_ct_en = 1;
-                     if(data_ct == 2) begin
-                        frame_type = data_rcvr;
-                        
-                     end
-                     write_address_next = write_address + 1;
-                end
-                else next = WRITE_SAMPLE;
+                    write_en = 1;
+                    data_ct_en = 1;
+                    if(data_ct == 2) frame_type = data_rcvr;  
+                    write_address_next = write_address + 1;
+                end else next = WRITE_SAMPLE;
                 
                 
                 if(!cardet)begin
                     next = READ;
                     if(frame_type == 8'h32) ack_need_set = 1;
                     if(frame_type == 8'h33) ack_rcv_set = 1;
-                end
-                else next = WRITE_SAMPLE;
+                end else next = WRITE_SAMPLE;
 //                if(cardet && valid)
 //                    next = WRITE_SAMPLE;
 //                else
@@ -189,6 +186,7 @@ states_t state, next;
             end
 
             READ: begin
+                valid_cardet = 1;
                 rvalid = 1;
                 if(ack_sent) ack_need_clr = 1;
                 if(rrdy) begin
@@ -196,8 +194,7 @@ states_t state, next;
                     crc_enb = 1;
                     read_address_next = read_address + 1;
                     read_ct_en = 1;
-                end
-                else next = READ;
+                end else next = READ;
                 
                 //type 1. stop reading 1 byte ahead to prevent writing out crc to terminal
                 if(frame_type == 8'h31) begin
@@ -206,8 +203,7 @@ states_t state, next;
                         data_ct_clr = 1;
                         read_ct_clr = 1;
                         crc_rcv = 1;
-                    end
-                    else next = READ;
+                    end else next = READ;
                 end
                 //done reading all the data out to the uart?
                 //SET UP FRAME CHECK FOR ACK FRAME
@@ -224,6 +220,7 @@ states_t state, next;
             end
             
             READ_CRC: begin
+                valid_cardet = 1;
                 rvalid = 1;
                 if(rrdy) begin
 
