@@ -8,7 +8,7 @@ module xmit_controller(
     logic [31:0] watchdog_ct;
     logic [8:0] write_address_next;
     logic [8:0] read_address_next,preamble_ct;
-    //logic [7:0] frame_type;
+    logic [7:0] frame_type_crc;
     logic [5:0] data_ct, read_ct, rand_wait;
     logic [2:0] data_select_next,attempt_ct;
     logic clr_dest_addr, set_dest_addr;
@@ -20,7 +20,7 @@ module xmit_controller(
     localparam SLOT = 8;
     localparam ACK_TIMEOUT = 256;
     localparam MAX_ATTEMPTS = 5;
-
+    assign frame_type_crc = frame_type;
     parameter PREAMBLE_LENGTH = 1;
     always_ff @(posedge clk) begin
         if (rst) begin
@@ -117,15 +117,18 @@ module xmit_controller(
             end
             WAIT_DIFS: begin
                 if(enb_out_8) begin
-                    watchdog_ct_en = 1;
-                    if (watchdog_ct >= 32'd640) begin
+                    watchdog_ct_en = 1;                 
+                    if (watchdog_ct >= 32'd64) begin
                         if (cardet) begin
                             watchdog_ct_clr = 1;
                             set_rand_wait = 1;
                             next = WAIT_DIFS_RANDOM;
                         end else begin
                             if(ACK_needed)next = TRANSMIT_ACK;
+                            else if(ACK_received) next = IDLE;
                             else next = TRANSMIT;
+                            read_address_next = 0;
+                            read_ct_clr = 1;
                         end
                         //if(ACK_received)next = IDLE;
                     end else next = WAIT_DIFS;
@@ -133,13 +136,18 @@ module xmit_controller(
                 
             end
             WAIT_DIFS_RANDOM: begin
-                if(enb_out_8) begin
+                if(ACK_received)next = IDLE;
+                else next = WAIT_DIFS_RANDOM;
+                if(enb_out_8) begin       
                     watchdog_ct_en = 1;
-                    if (watchdog_ct >= (32'd2000)) begin
+                    if (watchdog_ct >= (32'd20)) begin
                         if (cardet) next = WAIT_DIFS_RANDOM; //should rand_wait be re-randomzied here?
                         else begin
                             if(ACK_needed)next = TRANSMIT_ACK;
+                            else if(ACK_received) next = IDLE;
                             else next = TRANSMIT;
+                            read_address_next = 0;
+                            read_ct_clr = 1;
                         end
                         watchdog_ct_clr = 1;
                         //if(ACK_received)next = IDLE;
@@ -354,12 +362,15 @@ module xmit_controller(
                         if (mx_rdy) begin
                             mx_valid = 1;
                             read_ct_en = 1;
-                        end else next = TRANSMIT_CRC; //was transmit crc 5/19
-                    end else next = TRANSMIT_CRC;
-                end else begin
-                    if(frame_type ==8'h32) next = ACK_WAIT; //need ack frame back
-                     else next = IDLE;
-                    //next = TRANSMIT_CRC; 
+                            next = TRANSMIT_CRC;
+                        end 
+                        else next = TRANSMIT_CRC; //was transmit crc 5/19
+                    end 
+                    else next = TRANSMIT_CRC;
+                end
+                else begin
+                    if(frame_type == 8'h32) next = ACK_WAIT; //need ack frame back
+                    else next = IDLE; 
                 end
             end
             TRANSMIT_CRC_ACK: begin
