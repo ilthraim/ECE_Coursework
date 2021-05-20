@@ -1,6 +1,6 @@
 module xmit_top #(parameter BIT_RATE = 50000, IDLE_BITS =2) (
     input logic clk, rst, xvalid, xsend, cardet, ACK_received, ACK_needed, [7:0] mac, ack_addr, xdata, uart_in, ftype,ack_frame_addr, 
-    output logic txd,ack_sent, txen, xrdy, xbusy, [7:0] xerrcnt);
+    output logic txd,ack_sent, txen, xrdy, xbusy, [3:0] xerrcnt);
 
 //add CRC!
     logic [8:0] write_address,read_address;
@@ -21,7 +21,7 @@ module xmit_top #(parameter BIT_RATE = 50000, IDLE_BITS =2) (
     xmit_controller xmit_top_fsm (.clk, .rst, .xvalid, .xsend, .mx_rdy, .ACK_received, .ACK_needed, .MAC(mac), .dest_addr, .ftype(ftype_xmit), .cardet, .enb_out_uart,.enb_out_mx,.enb_out_8,
     .xrdy, .xbusy, .mx_valid, .xerrcnt, .write_en, .write_address, .read_address, .read_en, .data_select(data_sel),.uart_in, .crc_xmit, .crc_clr, .crc_en(crc_enb),.ack_frame_addr,.ack_sent,.frame_type);
     
-    bram_dp xmit_BRAM (.clka(clk),.wea(write_en),.addra(write_address),.dina(bram_in),.clkb(clk),.addrb(read_address),.doutb(data),.ena(1'b1),.enb(1'b1));
+    bram_dp_2 xmit_BRAM (.clka(clk),.wea(write_en),.addra(write_address),.dina(bram_in),.clkb(clk),.addrb(read_address),.doutb(data),.ena(1'b1),.enb(1'b1));
      //ip_dumb xmit_BRAM (.clka(clk),.wea(write_en),.addra(write_address),.dina(bram_in),.clkb(clk),.addrb(read_address),.doutb(data),.ena(1'b1),.enb(1'b1));
     manchester_xmit #(.BIT_RATE(BIT_RATE), .IDLE_BITS(IDLE_BITS)) mx_xmit (.clk, .rst, .valid(mx_valid), .data(xmit_data),.rdy(mx_rdy), .txd, .txen);
     

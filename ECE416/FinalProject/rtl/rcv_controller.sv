@@ -1,12 +1,12 @@
 module rcv_controller #(parameter PREAMBLE_LENGTH = 1)(
     input logic clk, rst, valid, cardet, rrdy, ack_sent,
-    input logic [7:0] MAC, data_bram,fcs, data_rcvr,
+    input logic [7:0] MAC, data_bram,fcs, data_rcvr,crc_out,
     output logic write_en, read_en, ACK_needed, ACK_received, rvalid, crc_enb, crc_clr,crc_rcv,valid_cardet,
-    output logic [7:0] rerrcount,
+    output logic [3:0] rerrcount,
     output logic [8:0] write_address, read_address,ack_frame_addr
 );
 
-logic empty, rerrcount_en, read_type, read_dest_addr,data_ct_clr,data_ct_en,read_ct_clr,read_ct_en,ack_need_set,ack_need_clr,ack_rcv_set,ack_rcv_clr;
+logic empty,rerrcount_clr, rerrcount_en, read_type, read_dest_addr,data_ct_clr,data_ct_en,read_ct_clr,read_ct_en,ack_need_set,ack_need_clr,ack_rcv_set,ack_rcv_clr;
 logic [8:0] read_address_next, write_address_next,data_ct,read_ct;
 logic [7:0] frame_type;
 
@@ -45,8 +45,8 @@ states_t state, next;
 //        if(read_en)
 //            read_address <= read_address + 1;
         //increment the error counter if fcs isn't 0
-//        if(rerrcount_en)
-//            rerrcount <= rerrcount + 1;
+        if(rerrcount_en)rerrcount <= rerrcount + 1;
+        else if (rerrcount_clr) rerrcount <= 0;
         //change read address to the type position in the frame
 //        if(read_type)
 //            read_address <= PREAMBLE_LENGTH + 3;
@@ -66,6 +66,7 @@ states_t state, next;
         read_en = 0;
         write_en = 0;
         rerrcount_en = 0;
+        rerrcount_clr = 0;
         valid_cardet = 0;
 //        ACK_needed = 0;
 //        ACK_received = 0;
@@ -225,7 +226,7 @@ states_t state, next;
                 valid_cardet = 1;
                 rvalid = 1;
                 if(rrdy) begin
-
+                    if(crc_out != 0) rerrcount_en = 1;
                     crc_rcv = 1;
                     next = IDLE;
                 end 

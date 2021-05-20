@@ -2,16 +2,28 @@
 
 module wimpfi_top(
     input logic clk, rst, rxd, a_rxd,backoff,[1:0]ftype_a, [7:0] mac,
-    output logic txd, a_txd, cfgclk, cfgdat, rcv_led
+    output logic txd,dp_n, a_txd, cfgclk, cfgdat, rcv_led,[7:0]an_n,[6:0]segs_n
     );
-    logic[7:0] ack_addr, xdata,dest_addr,ftype,uart_in,xerrcnt,rdata,rerrcnt,ack_frame_addr;
-    logic xvalid, xrdy, rvalid, rrdy, xsnd,xsend, ACK_received,ACK_needed,xbusy,cardet,ferr,oerr,txen,ack_sent,backoff_cardet,valid_cardet,cardet_final;
+    logic[7:0] ack_addr, xdata,dest_addr,ftype,uart_in,rdata,ack_frame_addr;
+    logic xvalid, txen_fail, xrdy, rvalid,txen_safe, rrdy, xsnd,xsend, ACK_received,ACK_needed,xbusy,cardet,ferr,oerr,txen,ack_sent,backoff_cardet,valid_cardet,cardet_final;
+    logic[3:0] xerrcnt,rerrcnt;
+    logic[6:0] d7, d6, d5, d4, d3, d2, d1, d0;
     assign cfgclk = !txen;
-    assign cfgdat = 1;
+    assign cfgdat = !txen_fail;
     assign xsend = xvalid && (uart_in == 8'h04);
     //assign backoff_cardet = cardet || backoff;
     assign cardet_final = backoff || valid_cardet;
     assign rcv_led = cardet_final;
+    assign d0 = {3'b000,xerrcnt};
+    assign d1 = {3'b000,rerrcnt};
+    assign d2 = 7'b1000000;
+    assign d3 = 7'b1000000;
+    assign d4 = 7'b1000000;
+    assign d5 = 7'b1000000;
+    assign d6 = 7'b1000000;
+    assign d7 = 7'b1000000;
+    
+    
     xmit_top u_xmit_top(.clk, .rst, .xvalid, .xsend, .cardet(cardet_final), .ACK_received, .ACK_needed, .mac, .ack_addr, .xdata, .ftype, .uart_in,
     .txd, .txen, .xrdy, .xbusy, .xerrcnt, .ack_frame_addr,.ack_sent);
     
@@ -20,11 +32,15 @@ module wimpfi_top(
     
     uart_xmit u_uart_xmit(.clk100MHz(clk), .rst, .valid(rvalid), .data(rdata),
     .rdy(rrdy), .txd(a_txd));
-    
+     fsafe fail_safe(.clk, .rst, .txen,.txen_safe, .txen_fail);
     //a_rxd is from terminal input
     uart_rxd u_uart_rxd(.clk, .rst, .rxd(a_rxd), .rdy(xrdy),
     .valid(xvalid), .xsnd, .ferr, .oerr, .data(uart_in));
-    //assign ftype = {{6'b000003},ftype_a};
+    
+    sevenseg_ctl U_CTRL (.clk, .rst, .d7, .d6, .d5, .d4, .d3, .d2, .d1, .d0,
+        .segs_n, .dp_n, .an_n);
+    
+    
     always_comb begin
     if(ftype_a == 2'b00) ftype = 8'h30;
     else if (ftype_a == 2'b01) ftype = 8'h31;
