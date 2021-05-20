@@ -1,6 +1,6 @@
 module xmit_controller(
     input logic clk, enb_out_8, rst, enb_out_uart, enb_out_mx, xvalid, xsend, mx_rdy, ACK_received, ACK_needed, cardet, [7:0]MAC, ftype, uart_in,ack_frame_addr,
-    output logic crc_en, crc_clr, crc_xmit, xrdy, ack_sent, xbusy, mx_valid, write_en, read_en,[7:0] dest_addr, frame_type, [2:0] data_select,[3:0]xerrcnt, [8:0] write_address, read_address);
+    output logic crc_en, crc_clr, crc_xmit, xrdy,ack_rcv_clr, ack_sent, xbusy, mx_valid, write_en, read_en,[7:0] dest_addr, frame_type, [2:0] data_select,[3:0]xerrcnt, [8:0] write_address, read_address);
 
     typedef enum logic [4:0] {IDLE, LOAD_DEST_ACK, LOAD_PREAMBLE, WAIT_DIFS, WAIT_DIFS_RANDOM, LOAD_SFD, LOAD_SFD_DUMMY, LOAD_DEST_ADDR, LOAD_SRC_ADDR,LOAD_FRAME_TYPE, LOAD_SAMPLE, WAIT_SIFS, LOAD_FCS, LOAD_EOF, TRANSMIT, TRANSMIT_CRC, ACK_WAIT,TRANSMIT_ACK,TRANSMIT_CRC_ACK} states_t;
     states_t state, next;
@@ -16,7 +16,7 @@ module xmit_controller(
     logic [1:0] ct3;
     logic set_rand_wait;
     localparam DIFS = 80;
-    localparam SIFS = 80; //should be 40
+    localparam SIFS = 40; //should be 40
     localparam SLOT = 8;
     localparam ACK_TIMEOUT = 256;
     localparam MAX_ATTEMPTS = 5;
@@ -37,6 +37,7 @@ module xmit_controller(
             dest_addr <= 0;
             frame_type <= 0;
             rand_wait_ctr = 0;
+            xerrcnt <= 0;
             ct3 <= 0;
         end else begin
             state <= next;
@@ -56,8 +57,8 @@ module xmit_controller(
             else if (data_ct_en) data_ct <= data_ct + 1;
             if (read_ct_clr) read_ct <= 0;
             else if(read_ct_en) read_ct <= read_ct + 1;
-            if (xerrcnt_ct_clr) xerrcnt_ct <= 0;
-            else if (xerrcnt_ct_en) xerrcnt_ct <= xerrcnt_ct + 1;
+            if (xerrcnt_ct_clr) xerrcnt <= 0;
+            else if (xerrcnt_ct_en) xerrcnt <= xerrcnt + 1;
             if(clr_dest_addr) dest_addr <= 0;
             else if(set_dest_addr) dest_addr <= uart_in;
             if(ftype_clr) frame_type <= 0;
@@ -73,6 +74,7 @@ module xmit_controller(
         write_address_next = write_address;
         data_select_next = data_select;
         read_address_next = read_address;
+        ack_rcv_clr = 0;
         xrdy = 1;
         ftype_clr = 0;
         ftype_set = 0;
@@ -94,7 +96,10 @@ module xmit_controller(
         crc_xmit = 0;
         set_rand_wait = 0;
         attempt_ct_en = 0;
+        attempt_ct_clr = 0;
         ack_sent = 0;
+        xerrcnt_ct_en = 0;
+        xerrcnt_ct_clr = 0;
         //frame_type_fix = 8'h30;
         case (state)
             IDLE: begin
@@ -113,7 +118,7 @@ module xmit_controller(
             WAIT_DIFS: begin
                 if(enb_out_8) begin
                     watchdog_ct_en = 1;
-                    if (watchdog_ct >= 32'd640) begin
+                    if (watchdog_ct >= DIFS*8) begin
                         if (cardet) begin
                             watchdog_ct_clr = 1;
                             set_rand_wait = 1;
@@ -130,7 +135,8 @@ module xmit_controller(
             WAIT_DIFS_RANDOM: begin
                 if(enb_out_8) begin
                     watchdog_ct_en = 1;
-                    if (watchdog_ct >= (32'd2000)) begin
+                    if (watchdog_ct >= 20) begin
+                    //if (watchdog_ct >= ((DIFS+SLOT)*rand_wait*8)) begin
                         if (cardet) next = WAIT_DIFS_RANDOM; //should rand_wait be re-randomzied here?
                         else begin
                             if(ACK_needed)next = TRANSMIT_ACK;
@@ -344,13 +350,13 @@ module xmit_controller(
             end
             TRANSMIT_CRC: begin
                 crc_xmit = 1;  
-                if(read_ct <= 1) begin 
+                if(read_ct < 1) begin 
                     if (enb_out_mx) begin
                         if (mx_rdy) begin
                             mx_valid = 1;
                             read_ct_en = 1;
-//                            if(frame_type ==8'h32) next = ACK_WAIT; //need ack frame back
-//                            else next = TRANSMIT_CRC;
+                            if(frame_type ==8'h32) next = ACK_WAIT; //need ack frame back
+                            else next = TRANSMIT_CRC;
                         end else next = TRANSMIT_CRC; //was transmit crc 5/19
                     end else next = TRANSMIT_CRC;
                 end else begin
@@ -385,18 +391,20 @@ module xmit_controller(
                         if (ACK_received) begin
                             next = IDLE;
                             ftype_clr = 1;
+                            ack_rcv_clr = 1;
                         end else begin
                             preamble_ct_clr = 1;
                             attempt_ct_en = 1;
                             if (attempt_ct == 5) begin
                                 xerrcnt_ct_en = 1;
                                 next = IDLE;
+                                attempt_ct_clr = 1;
                             end else begin
-                            next = TRANSMIT;
-                            crc_clr = 1;
-                            read_address_next = 0;
-                            watchdog_ct_clr = 1;
-                            read_ct_clr = 1;
+                                next = TRANSMIT;
+                                crc_clr = 1;
+                                read_address_next = 0;
+                                watchdog_ct_clr = 1;
+                                read_ct_clr = 1;
                             end
                         end
                     end else next = ACK_WAIT;

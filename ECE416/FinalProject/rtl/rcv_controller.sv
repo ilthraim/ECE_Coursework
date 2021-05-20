@@ -1,14 +1,14 @@
 module rcv_controller #(parameter PREAMBLE_LENGTH = 1)(
-    input logic clk, rst, valid, cardet, rrdy, ack_sent,
+    input logic clk, rst, valid, cardet, rrdy, ack_sent,ack_rcv_clr,
     input logic [7:0] MAC, data_bram,fcs, data_rcvr,crc_out,
     output logic write_en, read_en, ACK_needed, ACK_received, rvalid, crc_enb, crc_clr,crc_rcv,valid_cardet,
     output logic [3:0] rerrcount,
     output logic [8:0] write_address, read_address,ack_frame_addr
 );
 
-logic empty,rerrcount_clr, rerrcount_en, read_type, read_dest_addr,data_ct_clr,data_ct_en,read_ct_clr,read_ct_en,ack_need_set,ack_need_clr,ack_rcv_set,ack_rcv_clr;
-logic [8:0] read_address_next, write_address_next,data_ct,read_ct;
-logic [7:0] frame_type;
+logic empty,rerrcount_clr,ftype_set,ftype_clr, rerrcount_en, read_type, read_dest_addr,data_ct_clr,data_ct_en,read_ct_clr,read_ct_en,ack_need_set,ack_need_clr,ack_rcv_set, set_ack_frame_addr, clr_ack_frame_addr;
+logic [8:0] read_address_next, write_address_next,data_ct,read_ct, ack_frame_addr_next;
+logic [7:0] frame_type,frame_type_next;
 
 typedef enum logic [2:0] {IDLE, WRITE_SAMPLE, CHECK_TYPE, READ,READ_CRC} states_t;
 states_t state, next;
@@ -25,6 +25,8 @@ states_t state, next;
             state <= IDLE;
             ACK_needed <= 0;
             ACK_received <= 0;
+            ack_frame_addr <= 0;
+            frame_type <= 0;
         end
         else
             state <= next;
@@ -38,6 +40,10 @@ states_t state, next;
             else if(ack_need_set) ACK_needed <= 1;
             if(ack_rcv_clr) ACK_received <= 0;
             else if(ack_rcv_set) ACK_received <= 1;
+            if(clr_ack_frame_addr) ack_frame_addr <= 0;
+            else if(set_ack_frame_addr) ack_frame_addr <= ack_frame_addr_next;
+            if(ftype_clr) frame_type <= 0;
+            else if(ftype_set) frame_type <= frame_type_next;
 //        //increment the write address when in the WRITE_SAMPLE state
 //        if(write_en)
 //            write_address <= write_address + 1;
@@ -62,7 +68,9 @@ states_t state, next;
         ack_need_clr = 0;
         ack_need_set = 0;
         ack_rcv_set = 0;
-        ack_rcv_clr = 0;
+        //ack_rcv_clr = 0;
+        ftype_set = 0;
+        ftype_clr = 0;
         read_en = 0;
         write_en = 0;
         rerrcount_en = 0;
@@ -82,10 +90,16 @@ states_t state, next;
         crc_rcv = 0;
         write_address_next = write_address;
         read_address_next = read_address;
+        ack_frame_addr_next =  ack_frame_addr; //was a 0?
+        frame_type_next = frame_type;
+        set_ack_frame_addr = 0;
+        clr_ack_frame_addr = 0;
         case (state)
             IDLE: begin
+                clr_ack_frame_addr = 1;
                 read_address_next = 0;
                 write_address_next = 0;
+                ftype_clr = 1;
                 crc_clr = 1;
                 if(ack_sent) ack_need_clr = 1;
                 //ack_need_clr = 1;
@@ -109,18 +123,25 @@ states_t state, next;
             WRITE_SAMPLE: begin
                 valid_cardet = 1;
                 if(valid) begin
-                    if(data_ct == 1) ack_frame_addr = data_rcvr;
+                    if(data_ct == 1)begin
+                        ack_frame_addr_next = data_rcvr;
+                        set_ack_frame_addr = 1;
+                    end
                     //write into bram
                     write_en = 1;
                     data_ct_en = 1;
-                    if(data_ct == 2) frame_type = data_rcvr;  
+                    //if(data_ct == 2) frame_type = data_rcvr;  
+                    if(data_ct == 2)begin
+                        ftype_set = 1;
+                        frame_type_next = data_rcvr;
+                    end
                     write_address_next = write_address + 1;
                 end else next = WRITE_SAMPLE;
                 
                 
                 if(!cardet)begin
                     next = READ;
-                    if(frame_type == 8'h32) ack_need_set = 1;
+                    if(frame_type == 8'h32) ack_need_set = 1; 
                     if(frame_type == 8'h33) ack_rcv_set = 1;
                 end else next = WRITE_SAMPLE;
 //                if(cardet && valid)
@@ -229,6 +250,7 @@ states_t state, next;
                     if(crc_out != 0) rerrcount_en = 1;
                     crc_rcv = 1;
                     next = IDLE;
+                   
                 end 
                 else next = READ_CRC;  
             end
