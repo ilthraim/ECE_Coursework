@@ -7,17 +7,26 @@ module xmit_top_tb();
     localparam BITPD_NS_MX = 1_000_000_000 / BIT_RATE;
     logic clk, rst, rxd, a_rxd,cfgclk,cfgdat, txd, a_txd,rcv_led,backoff; logic [7:0] mac;
     logic[1:0] ftype_a;
+    logic nc, oerr, uart_txd, uart_rdy, uart_valid, tx_rdy, tx_valid, tx_oerr, txd2l, sel;
+    logic [7:0] rcvr_data, tx_data;
+    logic [7:0] random_byte, last_byte;
     wimpfi_top U_DUV(.clk, .rst, .rxd, .a_rxd,.ftype_a, .mac, .txd, .cfgdat, .a_txd, .cfgclk, .rcv_led,.backoff);
-    //uart_rxd #(.BAUD_RATE(BAUD_RATE)) U_DUV(.clk, .rst, .rxd, .rdy, .valid, .ferr, .oerr, .data);
+    wimpfi_top U_DUMMYTHICC(.clk, .rst, .rxd(txd), .a_rxd(0), .ftype_a(0), .mac(8'h4F), .txd(txd2), .a_txd(uart_txd));
+    uart_rxd U_RCVR(.clk, .rst, .rxd(uart_txd), .rdy(uart_rdy), .valid(uart_valid), .data(rcvr_data), .oerr);
+    uart_rxd U_TXRCVR(.clk, .rst, .rxd(a_txd), .rdy(tx_rdy), .valid(uart_valid), .data(rcvr_data), .oerr(tx_oerr));
+    
     
     always begin
         clk = 1'b0; #(CLK_PD/2);
         clk = 1'b1; #(CLK_PD/2);
     end
-    
-   
 
-    
+    int errcount = 0;
+
+    task report_errors;
+        if (errcount == 0) $display("Testbench PASSED");
+        else $display("Testbench FAILED with %d errors", errcount);
+    endtask: report_errors
 
     
     task reset_duv;
@@ -28,14 +37,12 @@ module xmit_top_tb();
     
     //UART INPUT TO TRANSMIT===========================================
     task transmit_byte(input logic [7:0] txd);
-        rxd = 1'b0;
         a_rxd = 0;
         #BITPD_NS;
         for (int i = 0; i < 8; i = i + 1) begin
             a_rxd = txd[i];
             #BITPD_NS;
         end
-        rxd = 1'b1;
         a_rxd = 1;
         #BITPD_NS;
     endtask:transmit_byte
@@ -57,66 +64,216 @@ module xmit_top_tb();
     endtask
     //RCVR TASKS =====================================================================
     
+    task check_rcvr(input logic [7:0] data, input logic [7:0] exp_data);
+        if (data != exp_data) begin
+            $display("%t error: expected rcvd=%h actual rcvd=%h",
+                      $time, exp_data, data);
+            errcount++;
+        end
+    endtask:check_rcvr
+    
+    task send_zero(input int length);
+        logic [7:0] byte_array [31:0];
+        transmit_byte(8'h4F);
+        transmit_byte(8'h5A);
+        transmit_byte(8'h30);
+
+        random_byte = $urandom();
+        for (int i = 0; i < length; i = i + 1) begin
+            byte_array[i] = random_byte;
+            transmit_byte(random_byte);
+            random_byte = $urandom();
+        end
+        transmit_byte(8'h04);
+        
+
+        mxrcv_byte(8'h4F);
+        mxrcv_byte(8'h5A);
+        mxrcv_byte(8'h30);
+        for (int i = 0; i < length; i = i + 1) begin
+            mxrcv_byte(byte_array[i]);
+        end
+    endtask: send_zero
+    
+    task send_zero_bc(input int length);
+        logic [7:0] byte_array [31:0];
+        transmit_byte(8'h2A);
+        transmit_byte(8'h5A);
+        transmit_byte(8'h30);
+
+        random_byte = $urandom();
+        for (int i = 0; i < length; i = i + 1) begin
+            byte_array[i] = random_byte;
+            transmit_byte(random_byte);
+            random_byte = $urandom();
+        end
+        transmit_byte(8'h04);
+        
+
+        mxrcv_byte(8'h2A);
+        mxrcv_byte(8'h5A);
+        mxrcv_byte(8'h30);
+        for (int i = 0; i < length; i = i + 1) begin
+            mxrcv_byte(byte_array[i]);
+        end
+    endtask: send_zero_bc
+    
+    task send_one(input int length);
+        logic [7:0] byte_array [31:0];
+        transmit_byte(8'h4F);
+        transmit_byte(8'h5A);
+        transmit_byte(8'h31);
+
+        random_byte = $urandom();
+        for (int i = 0; i < length; i = i + 1) begin
+            byte_array[i] = random_byte;
+            transmit_byte(random_byte);
+            random_byte = $urandom();
+        end
+        transmit_byte(8'h04);
+        
+        mxrcv_byte(8'h4F);
+        mxrcv_byte(8'h5A);
+        mxrcv_byte(8'h31);
+        for (int i = 0; i < length; i = i + 1) begin
+            mxrcv_byte(byte_array[i]);
+        end
+        mxrcv_byte(8'h21);
+    endtask:send_one
+    
+     task send_one_bc(input int length);
+        logic [7:0] byte_array [31:0];
+        transmit_byte(8'h2A);
+        transmit_byte(8'h5A);
+        transmit_byte(8'h31);
+
+        random_byte = $urandom();
+        for (int i = 0; i < length; i = i + 1) begin
+            byte_array[i] = random_byte;
+            transmit_byte(random_byte);
+            random_byte = $urandom();
+        end
+        transmit_byte(8'h04);
+        
+        mxrcv_byte(8'h4F);
+        mxrcv_byte(8'h5A);
+        mxrcv_byte(8'h31);
+        for (int i = 0; i < length; i = i + 1) begin
+            mxrcv_byte(byte_array[i]);
+        end
+        mxrcv_byte(8'h21);
+    endtask:send_one_bc
+    
+    task send_zero_wa(input int length);
+        logic [7:0] byte_array [31:0];
+        transmit_byte(8'hCC);
+        transmit_byte(8'h5A);
+        transmit_byte(8'h30);
+
+        random_byte = $urandom();
+        for (int i = 0; i < length; i = i + 1) begin
+            byte_array[i] = random_byte;
+            transmit_byte(random_byte);
+            random_byte = $urandom();
+        end
+        transmit_byte(8'h04);
+        
+
+        mxrcv_byte(8'h2A);
+        mxrcv_byte(8'h5A);
+        mxrcv_byte(8'h30);
+        for (int i = 0; i < length; i = i + 1) begin
+            mxrcv_byte(byte_array[i]);
+        end
+    endtask: send_zero_wa
+    
+    task send_two(input int length);
+        logic [7:0] byte_array [31:0];
+        transmit_byte(8'h4F);
+        transmit_byte(8'h5A);
+        transmit_byte(8'h32);
+
+        random_byte = $urandom();
+        for (int i = 0; i < length; i = i + 1) begin
+            byte_array[i] = random_byte;
+            transmit_byte(random_byte);
+            random_byte = $urandom();
+        end
+        transmit_byte(8'h04);
+        
+
+        mxrcv_byte(8'h4F);
+        mxrcv_byte(8'h5A);
+        mxrcv_byte(8'h32);
+        for (int i = 0; i < length; i = i + 1) begin
+            mxrcv_byte(byte_array[i]);
+        end
+        
+        txrcv_byte(8'h5A);
+        txrcv_byte(8'h4F);
+        txrcv_byte(8'h32);
+    endtask: send_two
+    
+    task send_two_ack(input int length);
+        logic [7:0] byte_array [31:0];
+        sel = 0;
+        transmit_byte(8'h4F);
+        transmit_byte(8'h5A);
+        transmit_byte(8'h32);
+
+        random_byte = $urandom();
+        for (int i = 0; i < length; i = i + 1) begin
+            byte_array[i] = random_byte;
+            transmit_byte(random_byte);
+            random_byte = $urandom();
+        end
+        transmit_byte(8'h04);
+        
+        #15000000;
+        sel = 0;
+
+        mxrcv_byte(8'h4F);
+        mxrcv_byte(8'h5A);
+        mxrcv_byte(8'h32);
+        for (int i = 0; i < length; i = i + 1) begin
+            mxrcv_byte(byte_array[i]);
+        end
+        
+        txrcv_byte(8'h5A);
+        txrcv_byte(8'h4F);
+        txrcv_byte(8'h32);
+    endtask: send_two_ack
+    
+    task mxrcv_byte(input logic [7:0] rcv_byte);
+        uart_rdy = 1;
+        while(!uart_valid) @(posedge clk);
+        check_rcvr(rcvr_data, rcv_byte);
+        uart_rdy = 0;
+        #(CLK_PD);
+    endtask: mxrcv_byte
+    
+    task txrcv_byte(input logic [7:0] rcv_byte);
+        tx_rdy = 1;
+        while(!tx_valid) @(posedge clk);
+        check_rcvr(tx_data, rcv_byte);
+        tx_rdy = 0;
+        #(CLK_PD);
+    endtask: txrcv_byte
+    
+    assign rxd = sel ? txd2 : 1'b1;
+    
     initial begin
         $timeformat(-9, 0, "ns", 6);
         reset_duv;
         backoff = 0;
+        sel = 1;
         //rdy = 0;
         @(posedge clk);
         ftype_a = 2'b11;
         mac = 8'h5A; //our station's src addr. broadcast is 2A
-        rcv_byte(8'hAA);
-        rcv_byte(8'hD0);
-        rcv_byte(8'h5A); //dest addr:
-        rcv_byte(8'h4F);//src addr:D
-        rcv_byte(8'h32);//frame type: 1
-        rcv_byte(8'h68);//data h
-        rcv_byte(8'h69);//data i
-        rcv_byte(8'h66); //crc: good for "hi" is 66
-//        #(BITPD_NS*20);
-//        rcv_byte(8'hAA);
-//        rcv_byte(8'hD0);
-//        rcv_byte(8'h5A); //dest addr:
-//        rcv_byte(8'h44);//src addr:D
-//        rcv_byte(8'h30);//frame type
-//        rcv_byte(8'h68);//data h
-//        rcv_byte(8'h69);//data i
-//        transmit_byte(8'h5A); //dest addr:Z
-//        transmit_byte(8'h44);//src addr:D
-//        transmit_byte(8'h31);//type 
-//        transmit_byte(8'h68);//data h
-//        transmit_byte(8'h69);//data i
-//        transmit_byte(8'h04); //end transmission
-        #(BITPD_NS*60); //don't get ack back in time
-//        backoff = 0;
-//       // #(BITPD_NS*10);
-//        rcv_byte(8'hAA);
-//        rcv_byte(8'hD0);
-//        rcv_byte(8'h5A); //dest addr:
-//        rcv_byte(8'h44);//src addr:D
-//        rcv_byte(8'h33);//frame type: 3: ACK
-//        rcv_byte(8'h23); //crc: good for "ACK" is idk.....
-//        transmit_byte(8'h5A); //dest addr:Z
-//        transmit_byte(8'h44);//src addr:D
-//        transmit_byte(8'h30);//src addr:D
-//        transmit_byte(8'h68);//data h
-//        transmit_byte(8'h69);//data i
-//        transmit_byte(8'h04); //end transmission
-//        #(BITPD_NS*40);
-//        transmit_byte(8'h5A); //dest addr:Z
-//        transmit_byte(8'h44);//src addr:D
-//        transmit_byte(8'h31);//src addr:D
-//        transmit_byte(8'h68);//data h
-//        transmit_byte(8'h69);//data i
-//        transmit_byte(8'h04); //end transmission
-      //  #(BITPD_NS*20);
-//        rcv_byte(8'hAA);
-//        rcv_byte(8'hD0);
-//        rcv_byte(8'h5A); //dest addr:
-//        rcv_byte(8'h44);//src addr:D
-//        rcv_byte(8'h30);//frame type
-//        rcv_byte(8'h79);//data y
-//        rcv_byte(8'h6F);//data o
+        send_two(5);
+        #15000000;
+        report_errors;
         $stop;
     end
     

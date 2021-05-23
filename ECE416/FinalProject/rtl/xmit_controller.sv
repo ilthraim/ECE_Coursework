@@ -387,7 +387,7 @@ module xmit_controller(
             ACK_WAIT: begin
                 if(enb_out_8) begin
                     watchdog_ct_en = 1;
-                    if (watchdog_ct == SIFS * 8) begin
+                    if (watchdog_ct == ACK_TIMEOUT * 8) begin
                         if (ACK_received) begin
                             next = IDLE;
                             ftype_clr = 1;
