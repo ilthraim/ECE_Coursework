@@ -1,3 +1,13 @@
+//-----------------------------------------------------------------------------
+// Module Name   : fsafe
+// Project       : wimpFi
+//-----------------------------------------------------------------------------
+// Author        : John Nestor
+// Created       : May 2021
+//-----------------------------------------------------------------------------
+// Description   : Asserts a txen_fail signal when txen is high for too long
+//
+//-----------------------------------------------------------------------------
 module fsafe(
     input clk, rst, txen,
     output txen_safe, txen_fail

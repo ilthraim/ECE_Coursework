@@ -1,4 +1,13 @@
-
+//-----------------------------------------------------------------------------
+// Module Name   : xmit_top_tb
+// Project       : wimpFi
+//-----------------------------------------------------------------------------
+// Author        : Ethan Miller, Zachary Martin
+// Created       : May 2021
+//-----------------------------------------------------------------------------
+// Description   : self checking tb for the wimpFi module. 2 wimpFi modules
+// are instantiated and connected together
+//-----------------------------------------------------------------------------
 module xmit_top_tb();
     parameter CLK_PD = 10;
     parameter BAUD_RATE = 9600;
@@ -8,10 +17,12 @@ module xmit_top_tb();
     logic clk, rst, rxd, a_rxd,cfgclk,cfgdat, txd, a_txd,rcv_led,backoff,crc_clr,crc_enb; logic [7:0] mac;
     logic[1:0] ftype_a;
     logic nc, oerr, uart_txd, uart_rdy, uart_valid, tx_rdy, tx_valid, tx_oerr, txd2l, sel,failsafe_1,failsafe_2;
-    logic [7:0] rcvr_data, tx_data,crc_data,crc_out;
-    logic [7:0] random_byte, last_byte;
+    logic [7:0] rcvr_data, tx_data,crc_data,crc_out,random_byte, last_byte;
+
     wimpfi_top U_DUV(.clk, .rst, .rxd, .a_rxd,.ftype_a, .mac, .txd, .cfgdat, .a_txd, .cfgclk, .rcv_led,.backoff,.failsafe(failsafe_1));
     wimpfi_top U_DUV_2(.clk, .rst, .rxd(txd), .a_rxd(0), .ftype_a(0), .mac(8'h4F), .txd(txd2), .a_txd(uart_txd),.failsafe(failsafe_2));
+    
+    
     uart_rxd U_RCVR(.clk, .rst, .rxd(uart_txd), .rdy(uart_rdy), .valid(uart_valid), .data(rcvr_data), .oerr);
     uart_rxd U_TXRCVR(.clk, .rst, .rxd(a_txd), .rdy(tx_rdy), .valid(uart_valid), .data(rcvr_data), .oerr(tx_oerr));
     crc_lookup U_CRC (.clk, .rst, .clr(crc_clr), .enb(crc_enb), .data(crc_data), .crc(crc_out));
@@ -74,6 +85,7 @@ module xmit_top_tb();
         end
     endtask:check_rcvr
     
+    //Transmit type 0
     task send_zero(input int length);
         logic [7:0] byte_array [31:0];
         transmit_byte(8'h4F);
@@ -97,6 +109,7 @@ module xmit_top_tb();
         end
     endtask: send_zero
     
+    //Transmit type 0 broadcast
     task send_zero_bc(input int length);
         logic [7:0] byte_array [31:0];
         transmit_byte(8'h2A);
@@ -120,6 +133,7 @@ module xmit_top_tb();
         end
     endtask: send_zero_bc
     
+    //Transmit type 1
     task send_one(input int length);
         logic [7:0] byte_array [31:0];
         transmit_byte(8'h4F);
@@ -143,6 +157,7 @@ module xmit_top_tb();
         mxrcv_byte(8'h21); //crc status
     endtask:send_one
     
+    //Transmit type 1 with transmission failure
     task send_one_bad_crc(input int length);
         logic [7:0] byte_array [31:0];
         transmit_byte(8'h4F);
@@ -172,7 +187,8 @@ module xmit_top_tb();
         mxrcv_byte(8'h21); //check crc
     endtask:send_one_bad_crc
     
-     task send_one_bc(input int length);
+    //Transmit type 1 broadcast
+    task send_one_bc(input int length);
         logic [7:0] byte_array [31:0];
         transmit_byte(8'h2A);
         transmit_byte(8'h5A);
@@ -195,6 +211,7 @@ module xmit_top_tb();
         mxrcv_byte(8'h21);
     endtask:send_one_bc
     
+    //Transmit type 0 wrong address
     task send_zero_wa(input int length);
         logic [7:0] byte_array [31:0];
         transmit_byte(8'hCC);
@@ -218,6 +235,7 @@ module xmit_top_tb();
         end
     endtask: send_zero_wa
     
+    //Transmit type 2
     task send_two(input int length);
         logic [7:0] byte_array [31:0];
         transmit_byte(8'h4F);
@@ -245,6 +263,7 @@ module xmit_top_tb();
         txrcv_byte(8'h32);
     endtask: send_two
     
+    //Transmit type 2 and the other wimpFi module sends an ack back
     task send_two_ack(input int length);
         logic [7:0] byte_array [31:0];
         sel = 0;
@@ -275,6 +294,7 @@ module xmit_top_tb();
         txrcv_byte(8'h32);
     endtask: send_two_ack
     
+    //check if received byte is correct
     task mxrcv_byte(input logic [7:0] rcv_byte);
         uart_rdy = 1;
         while(!uart_valid) @(posedge clk);
@@ -283,6 +303,7 @@ module xmit_top_tb();
         #(CLK_PD);
     endtask: mxrcv_byte
     
+    //check if transmitted byte is correct
     task txrcv_byte(input logic [7:0] rcv_byte);
         tx_rdy = 1;
         while(!tx_valid) @(posedge clk);
@@ -291,26 +312,35 @@ module xmit_top_tb();
         #(CLK_PD);
     endtask: txrcv_byte
     
+    //Failsafe check
     task failsafe_test();
         for (int i = 0; i < 550; i = i + 1) begin
             failsafe_1 = 1;
         end
     endtask: failsafe_test
     
+    //Backoff check
+    task backoff_test();
+        backoff = 1;
+        send_zero(10);
+        @(posedge clk)#200;
+        backoff = 0;
+    endtask: backoff_test;
+    
+    //let rxd be high by default
     assign rxd = sel ? txd2 : 1'b1;
     
     initial begin
         $timeformat(-9, 0, "ns", 6);
         reset_duv;
-        backoff = 0;
         sel = 1;
-        //rdy = 0;
+        backoff = 0;
         @(posedge clk);
         ftype_a = 2'b11; //has no current use in sim. Used for debugging in hardware
         mac = 8'h5A; //our station's src addr. broadcast is 2A
-        send_one_bad_crc(3);
-//        send_two(5);
-//        report_errors;
+       // send_one_bad_crc(3);
+        send_two(5); 
+        report_errors;
         $stop;
     end
     

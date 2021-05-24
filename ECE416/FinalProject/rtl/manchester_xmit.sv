@@ -1,3 +1,15 @@
+//-----------------------------------------------------------------------------
+// Module Name   : manchester_xmit
+// Project       : Manchester Transmitter
+//-----------------------------------------------------------------------------
+// Author        : Ethan Miller & John Burk
+// Created       : April 2021
+//-----------------------------------------------------------------------------
+// Description   : Top level module integrating all inputs and outputs,
+// as well as the shreg, rate enbs, and FSM. Counters done in RTL within
+// FSM
+//-----------------------------------------------------------------------------
+
 module manchester_xmit #(parameter BIT_RATE = 50000, parameter IDLE_BITS = 2) (
     input logic clk, rst, valid, [7:0] data,
     output logic rdy, txd, txen

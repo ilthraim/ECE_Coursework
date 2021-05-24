@@ -1,3 +1,13 @@
+//-----------------------------------------------------------------------------
+// Module Name   : fsafe_fsm
+// Project       : wimpFi
+//-----------------------------------------------------------------------------
+// Author        : John Nestor, edits by Zachary Martin
+// Created       : May 2021
+//-----------------------------------------------------------------------------
+// Description   : Asserts a txen_fail signal when txen is high for too long
+// Uses a counter to keep track of time that txen is high.
+//-----------------------------------------------------------------------------
 module fsafe_fsm (
     input logic clk, rst, txen, bp_enb,
     output logic txen_fail
